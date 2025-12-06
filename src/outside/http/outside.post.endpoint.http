@@ -1,0 +1,18 @@
+POST http://localhost:3003/outside/1/payment
+Content-Type: application/json
+
+{
+  "apiKey": "399129",
+  "buyerAccount": "devimmain@gmail.com",
+  "buyerName": "Devimmain",
+  "buyerPhone": "0133296916",
+  "isRefundable": "false",
+  "orderId": "DI000120250730-38",
+  "productAmount": "250.00",
+  "productCat": "digital_services",
+  "productDesc": "SS 2 pax package",
+  "productName": "Switzerland, Swiss",
+  "returnUrl": "https://merchant.com/return",
+  "secretKey": "HRC1064903171RY",
+  "signature": "efbb08dfa8215674b0ff72dab6b054d6f9fa5834d3a0e90192426dd0c915781a"
+}

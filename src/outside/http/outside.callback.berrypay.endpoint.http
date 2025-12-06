@@ -1,0 +1,18 @@
+POST http://localhost:3003/outside/callback/32018
+Content-Type: application/json
+
+{
+    "txn_status_id":"1",
+    "txn_order_id":"DI000120250730-24",
+    "txn_ref_id":"BP10220250804215942",
+    "txn_msg":"Payment Successful",
+    "txn_date":"2025-08-04 21:59:42",
+    "txn_bank_name":"SBI Bank A",
+    "return_url":"",
+    "txn_buyer_name":"Devimmain",
+    "txn_buyer_phone":"0133296916",
+    "txn_buyer_email":"devimmain@gmail.com",
+    "txn_payment_id":"2508042159430812",
+    "signature":"5d571a34d11a06c941a99ade650a55966d20b8ee5b26bdde6379ffdc7471707f",
+    "txn_amount":"250.00"
+}

@@ -1,0 +1,11 @@
+POST http://localhost:3003/merchant
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjQ0MDAwMSwiZW1haWwiOiJzdXBlcmFkbWluQGdhdGVwYXkuZGV2IiwiaWF0IjoxNzUyOTgyMjI3LCJleHAiOjE3NTI5ODU4MjcsImF1ZCI6ImxvY2FsaG9zdDozMDAzIiwiaXNzIjoibG9jYWxob3N0OjMwMDMifQ.m2WnHnCLGWhri7NAJ_qGgN80ycZ8r5DAnvQFAWBOzuo
+Content-Type: application/json
+
+{
+  "name": "Test Company Ltd",
+  "email": "merchant@test.com",
+  "phone": "+60123456789",
+  "category": 1,
+  "callbackUrl": "https://merchant.com/webhook"
+}
