@@ -1,0 +1,11 @@
+POST http://localhost:3003/buyer/create-order
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjIsImVtYWlsIjoidGVzdHVzZXIyQGdhdGVwYXkuZGV2IiwiaWF0IjoxNzY2NTU5ODE3LCJleHAiOjE3NjY1NjM0MTcsImF1ZCI6ImxvY2FsaG9zdDozMDAzIiwiaXNzIjoibG9jYWxob3N0OjMwMDMifQ.5Bd6quEbxkBe_Zamm7uDMsE2O0v_ZvYkE1345fDyMLk
+Content-Type: application/json
+
+{
+  "buyerUsername": "testuser3",
+  "amount": "5.00",
+  "productName": "Product C",
+  "productDesc": ["banana", "matcha"],
+  "productCat": "food_beverages"
+}

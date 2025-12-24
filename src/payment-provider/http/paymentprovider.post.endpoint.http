@@ -1,10 +1,10 @@
 POST http://localhost:3003/payment-providers
 Content-Type: application/json
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjQ0MDAwMSwiZW1haWwiOiJzdXBlcmFkbWluQGdhdGVwYXkuZGV2IiwiaWF0IjoxNzU0MjQ1MDAxLCJleHAiOjE3NTQyNDg2MDEsImF1ZCI6ImxvY2FsaG9zdDozMDAzIiwiaXNzIjoibG9jYWxob3N0OjMwMDMifQ.Z5kYtA4gSed2_D0NjLJyN89Q1h3vMq-63O54ofg87M4
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjQ0MDAwMSwiZW1haWwiOiJzdXBlcmFkbWluQGdhdGVwYXkuZGV2IiwiaWF0IjoxNzY2NTUyMjA0LCJleHAiOjE3NjY1NTU4MDQsImF1ZCI6ImxvY2FsaG9zdDozMDAzIiwiaXNzIjoibG9jYWxob3N0OjMwMDMifQ.qC3pTba8r_NLfHDrI89yxow81M4IZ-SZGHABaPsLKJ8
 
 {
-  "name": "Berrypay Payment",
-  "email": "operations@berrypay.com",
+  "name": "Gatepay Operations",
+  "email": "operations@gatepay.dev",
   "status": "active",
-  "expiryDate": "2025-12-31"
+  "expiryDate": "2026-12-31"
 }

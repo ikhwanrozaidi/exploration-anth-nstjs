@@ -17,7 +17,7 @@ import { User } from 'src/users/user.entity';
 @Injectable()
 export class OtpProvider {
   private readonly logger = new Logger(OtpProvider.name);
-  private readonly WHITELISTED_EMAILS = ['devimmain@gmail.com', 'testuser2@gatepay.dev'];
+  private readonly WHITELISTED_EMAILS = ['devimmain@gmail.com', 'testuser2@gatepay.dev', 'superadmin@gatepay.dev', 'testuser3@gatepay.dev'];
   private readonly WHITELISTED_PHONES = ['60133296916', '60173555706'];
   private readonly WHITELIST_OTP = '000000';
   private readonly OTP_EXPIRY = 300; // 5 minutes in seconds

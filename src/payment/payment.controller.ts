@@ -1,5 +1,5 @@
 // src/payment/payment.controller.ts
-import { Controller, Get, HttpCode, HttpStatus } from '@nestjs/common';
+import { Body, Controller, Get, HttpCode, HttpStatus, Ip, Post } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
 import { Auth } from '../auth/decorators/auth.decorator';
 import { ActiveUser } from '../auth/decorators/active-user.decorator';
@@ -11,7 +11,11 @@ import { UserPaymentResponse } from './interface/payment-user.interface';
 @ApiTags('Payment')
 @Controller('payment')
 export class PaymentController {
-  constructor(private readonly paymentService: PaymentService) {}
+  constructor(
+
+    private readonly paymentService: PaymentService
+  
+  ) {}
 
   @Get('merchant')
   @HttpCode(HttpStatus.OK)

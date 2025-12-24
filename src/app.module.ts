@@ -21,6 +21,7 @@ import { RoleBasedAccessGuard } from './auth/guards/role-based-access.guard';
 import { OutsideModule } from './outside/outside.module';
 import { TransformResponseInterceptor } from './common/interceptors/transform-response.interceptor';
 import { WalletModule } from './wallet/wallet.module';
+import { BuyerModule } from './buyer/buyer.module';
 
 // Get the current NODE_ENV
 const ENV = process.env.NODE_ENV;
@@ -63,6 +64,7 @@ const ENV = process.env.NODE_ENV;
     AuditLogModule,
     OutsideModule,
     WalletModule,
+    BuyerModule,
   ],
   controllers: [AppController],
   providers: [

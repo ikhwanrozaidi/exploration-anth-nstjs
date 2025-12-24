@@ -18,7 +18,7 @@ export class PaymentDetails {
 
   @Column({ 
     type: 'json',
-    nullable: true 
+    nullable: false // just change to false 
   })
   productDesc: string[];
 
@@ -36,12 +36,12 @@ export class PaymentDetails {
   amount: number;
 
   @Column({ 
-    nullable: false 
+    nullable: true // just change to true
   })
   buyerName: string;
 
   @Column({ 
-    nullable: false 
+    nullable: true // just change to true 
   })
   buyerEmail: string;
 
