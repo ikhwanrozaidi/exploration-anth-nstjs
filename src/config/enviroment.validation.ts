@@ -16,4 +16,10 @@ export default Joi.object({
   JWT_ACCESS_TOKEN_TTL: Joi.number().required(),
   JWT_REFRESH_TOKEN_TTL: Joi.number().required(),
   PAYMENT_JWT_SECRET: Joi.string().required(),
+  SPACES_ENDPOINT: Joi.string().required(),
+  SPACES_REGION: Joi.string().required(),
+  SPACES_BUCKET: Joi.string().required(),
+  SPACES_KEY: Joi.string().required(),
+  SPACES_SECRET: Joi.string().required(),
+  SPACES_CDN_ENDPOINT: Joi.string().required(),
 });

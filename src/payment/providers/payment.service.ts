@@ -1,4 +1,4 @@
-// src/payment/payment.service.ts
+// src/payment/providers/payment.service.ts
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -6,20 +6,15 @@ import { Payment } from '../payment.entity';
 import { User } from 'src/users/user.entity';
 import { UserPaymentResponse } from '../interface/payment-user.interface';
 
-
-
 @Injectable()
 export class PaymentService {
   constructor(
-
     @InjectRepository(Payment)
     private readonly paymentRepository: Repository<Payment>,
 
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
   ) {}
-
-
 
   /**
    * Get merchant payments (for Admin users)
@@ -46,7 +41,7 @@ export class PaymentService {
       // Get all payments for the merchant
       const payments = await this.paymentRepository.find({
         where: { merchantId: user.merchantId },
-        relations: ['paymentDetails', 'receiver', 'sender', 'provider'],
+        relations: ['paymentDetails', 'seller', 'buyer', 'provider'],
         order: { createdAt: 'DESC' }
       });
 
@@ -65,63 +60,63 @@ export class PaymentService {
   }
 
   /**
- * Get personal payments (for regular Users)
- */
-async getPersonalPayments(userId: number): Promise<UserPaymentResponse[]> {
-  console.log('PaymentService: Getting personal payments for user ID:', userId);
+   * Get personal payments (for regular Users)
+   */
+  async getPersonalPayments(userId: number): Promise<UserPaymentResponse[]> {
+    console.log('PaymentService: Getting personal payments for user ID:', userId);
 
-  try {
-    // Get user details
-    const user = await this.userRepository.findOne({
-      where: { id: userId }
-    });
+    try {
+      // Get user details
+      const user = await this.userRepository.findOne({
+        where: { id: userId }
+      });
 
-    if (!user) {
-      throw new Error('User not found');
+      if (!user) {
+        throw new Error('User not found');
+      }
+
+      console.log('Getting personal payments for userId:', userId);
+
+      // Convert userId to string for comparison with buyerId/sellerId
+      const userIdString = userId.toString();
+
+      // Get payments where user is buyer or seller
+      const payments = await this.paymentRepository
+        .createQueryBuilder('payment')
+        .leftJoinAndSelect('payment.paymentDetails', 'paymentDetails')
+        .leftJoinAndSelect('payment.seller', 'seller')
+        .leftJoinAndSelect('payment.buyer', 'buyer')
+        .leftJoinAndSelect('payment.provider', 'provider')
+        .where('payment.buyerId = :userId OR payment.sellerId = :userId', {
+          userId: userIdString 
+        })
+        .orderBy('payment.createdAt', 'DESC')
+        .getMany();
+
+      console.log(`Query executed with userId: ${userIdString}`);
+      console.log(`Raw query result count: ${payments.length}`);
+
+      // Debug: Log the first payment if exists
+      if (payments.length > 0) {
+        console.log('First payment details:');
+        console.log('Payment ID:', payments[0].paymentId);
+        console.log('Buyer ID:', payments[0].buyerId);
+        console.log('Seller ID:', payments[0].sellerId);
+      }
+
+      // Map payments to response format with user role
+      const paymentResponses = payments.map(payment => 
+        this.mapPaymentToResponse(payment, userIdString, null)
+      );
+
+      console.log(`Found ${paymentResponses.length} personal payments`);
+      return paymentResponses;
+
+    } catch (error) {
+      console.error('Error getting personal payments:', error);
+      throw error;
     }
-
-    console.log('Getting personal payments for userId:', userId);
-
-    // Convert userId to string for comparison with senderId/receiverId
-    const userIdString = userId.toString();
-
-    // Get payments where user is sender or receiver
-    const payments = await this.paymentRepository
-      .createQueryBuilder('payment')
-      .leftJoinAndSelect('payment.paymentDetails', 'paymentDetails')
-      .leftJoinAndSelect('payment.receiver', 'receiver')
-      .leftJoinAndSelect('payment.sender', 'sender')
-      .leftJoinAndSelect('payment.provider', 'provider')
-      .where('payment.senderId = :userId OR payment.receiverId = :userId', { 
-        userId: userIdString 
-      })
-      .orderBy('payment.createdAt', 'DESC')
-      .getMany();
-
-    console.log(`Query executed with userId: ${userIdString}`);
-    console.log(`Raw query result count: ${payments.length}`);
-
-    // Debug: Log the first payment if exists
-    if (payments.length > 0) {
-      console.log('First payment details:');
-      console.log('Payment ID:', payments[0].paymentId);
-      console.log('Sender ID:', payments[0].senderId);
-      console.log('Receiver ID:', payments[0].receiverId);
-    }
-
-    // Map payments to response format with user role
-    const paymentResponses = payments.map(payment => 
-      this.mapPaymentToResponse(payment, userIdString, null)
-    );
-
-    console.log(`Found ${paymentResponses.length} personal payments`);
-    return paymentResponses;
-
-  } catch (error) {
-    console.error('Error getting personal payments:', error);
-    throw error;
   }
-}
 
   /**
    * Map payment entity to response format with user role
@@ -131,23 +126,23 @@ async getPersonalPayments(userId: number): Promise<UserPaymentResponse[]> {
     userId: string, 
     userMerchantId: number | null
   ): UserPaymentResponse {
-    let userRole: 'sender' | 'receiver' | 'merchant';
+    let userRole: 'buyer' | 'seller' | 'merchant';
 
     if (userMerchantId && payment.merchantId === userMerchantId) {
       userRole = 'merchant';
-    } else if (payment.senderId === userId) {
-      userRole = 'sender';
-    } else if (payment.receiverId === userId) {
-      userRole = 'receiver';
+    } else if (payment.buyerId === userId) {
+      userRole = 'buyer';
+    } else if (payment.sellerId === userId) {
+      userRole = 'seller';
     } else {
-      userRole = 'sender';
+      userRole = 'buyer';
     }
 
     return {
       paymentId: payment.paymentId,
       paymentType: payment.paymentType,
-      receiverId: payment.receiverId,
-      senderId: payment.senderId,
+      sellerId: payment.sellerId,
+      buyerId: payment.buyerId,
       merchantId: payment.merchantId,
       amount: Number(payment.amount),
       isRequest: payment.isRequest,
@@ -168,13 +163,13 @@ async getPersonalPayments(userId: number): Promise<UserPaymentResponse[]> {
         buyerPhone: payment.paymentDetails.buyerPhone,
         refundable: payment.paymentDetails.refundable,
       } : null,
-      receiver: payment.receiver ? {
-        id: payment.receiver.id,
-        email: payment.receiver.email,
+      seller: payment.seller ? {
+        id: payment.seller.id,
+        email: payment.seller.email,
       } : null,
-      sender: payment.sender ? {
-        id: payment.sender.id,
-        email: payment.sender.email,
+      buyer: payment.buyer ? {
+        id: payment.buyer.id,
+        email: payment.buyer.email,
       } : null,
       provider: payment.provider ? {
         providerId: payment.provider.providerId,

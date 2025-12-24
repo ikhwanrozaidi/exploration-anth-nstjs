@@ -1,8 +1,8 @@
 export interface UserPaymentResponse {
   paymentId: string;
   paymentType: string;
-  receiverId: string | null;
-  senderId: string;
+  sellerId: string | null;
+  buyerId: string;
   merchantId: number | null;
   amount: number;
   isRequest: boolean;
@@ -11,9 +11,9 @@ export interface UserPaymentResponse {
   createdAt: Date;
   updatedAt: Date;
   ipAddress: string | null;
-  userRole: 'sender' | 'receiver' | 'merchant';
+  userRole: 'buyer' | 'seller' | 'merchant';
   paymentDetails?: any;
-  receiver?: any;
-  sender?: any;
+  seller?: any;
+  buyer?: any;
   provider?: any;
 }

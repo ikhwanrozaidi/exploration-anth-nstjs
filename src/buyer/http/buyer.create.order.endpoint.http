@@ -1,11 +1,11 @@
 POST http://localhost:3003/buyer/create-order
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjIsImVtYWlsIjoidGVzdHVzZXIyQGdhdGVwYXkuZGV2IiwiaWF0IjoxNzY2NTU5ODE3LCJleHAiOjE3NjY1NjM0MTcsImF1ZCI6ImxvY2FsaG9zdDozMDAzIiwiaXNzIjoibG9jYWxob3N0OjMwMDMifQ.5Bd6quEbxkBe_Zamm7uDMsE2O0v_ZvYkE1345fDyMLk
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjIsImVtYWlsIjoidGVzdHVzZXIyQGdhdGVwYXkuZGV2IiwiaWF0IjoxNzY2NTY0NDI4LCJleHAiOjE3NjY1NjgwMjgsImF1ZCI6ImxvY2FsaG9zdDozMDAzIiwiaXNzIjoibG9jYWxob3N0OjMwMDMifQ.4c1Edj53ywCIpO5g2ffZA4Tt9wNglhgb2lfSNo35ijA
 Content-Type: application/json
 
 {
-  "buyerUsername": "testuser3",
-  "amount": "5.00",
-  "productName": "Product C",
-  "productDesc": ["banana", "matcha"],
+  "sellerUsername": "testuser3",
+  "amount": "25.00",
+  "productName": "Product E",
+  "productDesc": ["kmk", "ktk"],
   "productCat": "food_beverages"
 }

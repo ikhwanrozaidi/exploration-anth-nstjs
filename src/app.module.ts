@@ -22,6 +22,7 @@ import { OutsideModule } from './outside/outside.module';
 import { TransformResponseInterceptor } from './common/interceptors/transform-response.interceptor';
 import { WalletModule } from './wallet/wallet.module';
 import { BuyerModule } from './buyer/buyer.module';
+import { UploadModule } from './upload/upload.module';
 
 // Get the current NODE_ENV
 const ENV = process.env.NODE_ENV;
@@ -65,6 +66,7 @@ const ENV = process.env.NODE_ENV;
     OutsideModule,
     WalletModule,
     BuyerModule,
+    UploadModule,
   ],
   controllers: [AppController],
   providers: [

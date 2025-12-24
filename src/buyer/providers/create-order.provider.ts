@@ -1,20 +1,27 @@
 // src/payment/providers/create-order.provider.ts
 
-import { 
-  Injectable, 
+import {
+  Injectable,
   BadRequestException,
   NotFoundException,
-  RequestTimeoutException 
+  RequestTimeoutException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { DataSource, Repository } from 'typeorm';
 import { User } from 'src/users/user.entity';
 import { AccountAudit } from 'src/audit-log/entity/account-audit.entity';
-import { PaymentType, PaymentStatus, WalletDirection } from 'src/common/enums/app.enums';
+import {
+  PaymentType,
+  PaymentStatus,
+  WalletDirection,
+} from 'src/common/enums/app.enums';
 import { BuyerCreateOrderDto } from '../dtos/create-order.dto';
 import { Payment } from 'src/payment/payment.entity';
 import { PaymentDetails } from 'src/payment/entity/payment-details.entity';
-import { P2P_PERCENTAGE_FEES, P2P_PROVIDER_ID } from 'src/payment/constant/payment.constant';
+import {
+  P2P_PERCENTAGE_FEES,
+  P2P_PROVIDER_ID,
+} from 'src/payment/constant/payment.constant';
 
 @Injectable()
 export class CreateOrderProvider {
@@ -39,7 +46,6 @@ export class CreateOrderProvider {
     createOrderDto: BuyerCreateOrderDto,
     ipAddress?: string,
   ): Promise<Payment> {
-
     console.log('CreateOrderProvider: Starting P2P payment creation');
     console.log('Buyer ID:', buyerId);
     console.log('Seller Username:', createOrderDto.sellerUsername);
@@ -54,11 +60,11 @@ export class CreateOrderProvider {
 
     // Step 1: Find sender
     const buyer = await this.userRepository.findOne({
-      where: { id: buyerId }
+      where: { id: buyerId },
     });
 
-    if (!buyerId) {
-      throw new NotFoundException('Sender not found');
+    if (!buyer) {
+      throw new NotFoundException('Buyer not found');
     }
 
     // Step 2: Find seller by username
@@ -68,7 +74,7 @@ export class CreateOrderProvider {
     });
 
     if (!seller) {
-      throw new BadRequestException('Username not found');
+      throw new BadRequestException('Seller username not found');
     }
 
     console.log('Seller found:', seller.email);
@@ -82,12 +88,13 @@ export class CreateOrderProvider {
     console.log('Buyer balance before:', buyer.balance);
 
     // Step 4: Get latest Gatepay balance from account_audit
-    const latestAudit = await this.accountAuditRepository.findOne({
-      order: { createdAt: 'DESC' }
-    });
+    const latestAudit = await this.accountAuditRepository
+      .createQueryBuilder('audit')
+      .orderBy('audit.createdAt', 'DESC')
+      .getOne();
 
-    const currentGatepayBalance = latestAudit 
-      ? parseFloat(latestAudit.balance.toString()) 
+    const currentGatepayBalance = latestAudit
+      ? parseFloat(latestAudit.balance.toString())
       : 0;
 
     const newGatepayBalance = currentGatepayBalance + feeAmount;
@@ -95,6 +102,7 @@ export class CreateOrderProvider {
     console.log('Gatepay balance before:', currentGatepayBalance);
     console.log('Gatepay balance after:', newGatepayBalance);
 
+    // Step 5: Create transaction
     // Step 5: Create transaction
     const queryRunner = this.dataSource.createQueryRunner();
     await queryRunner.connect();
@@ -105,13 +113,13 @@ export class CreateOrderProvider {
       buyer.balance = parseFloat(buyer.balance.toString()) - amount;
       await queryRunner.manager.save(buyer);
 
-      console.log('Sender balance after deduction:', buyer.balance);
+      console.log('Buyer balance after deduction:', buyer.balance);
 
       // 5b. Create Payment record
       const payment = queryRunner.manager.create(Payment, {
         paymentType: PaymentType.P2P,
-        senderId: buyerId.toString(),
-        receiverId: seller.id.toString(),
+        buyerId: buyerId.toString(),
+        sellerId: seller.id.toString(),
         merchantId: null,
         amount: amount,
         isRequest: false,
@@ -126,9 +134,10 @@ export class CreateOrderProvider {
       console.log('Payment created with ID:', savedPayment.paymentId);
 
       // 5c. Create PaymentDetails record
-      const buyerName = seller.userDetail?.fullName || 
-                        `${seller.userDetail?.firstName || ''} ${seller.userDetail?.lastName || ''}`.trim() || 
-                        seller.email.split('@')[0]; // Fallback to email username
+      const sellerName =
+        seller.userDetail?.fullName ||
+        `${seller.userDetail?.firstName || ''} ${seller.userDetail?.lastName || ''}`.trim() ||
+        seller.email.split('@')[0];
 
       const paymentDetails = queryRunner.manager.create(PaymentDetails, {
         paymentId: savedPayment.paymentId,
@@ -137,14 +146,17 @@ export class CreateOrderProvider {
         productDesc: createOrderDto.productDesc,
         productCat: createOrderDto.productCat,
         amount: amount,
-        buyerName: buyerName,
-        buyerEmail: seller.email,
-        buyerPhone: seller.phone || null,
+        // buyerName: sellerName,
+        // buyerEmail: seller.email,
+        // buyerPhone: seller.phone || null,
         refundable: true,
       });
 
       await queryRunner.manager.save(paymentDetails);
-      console.log('PaymentDetails created for payment ID:', savedPayment.paymentId);
+      console.log(
+        'PaymentDetails created for payment ID:',
+        savedPayment.paymentId,
+      );
 
       // 5d. Create AccountAudit record (Gatepay profit tracking)
       const accountAudit = queryRunner.manager.create(AccountAudit, {
@@ -165,16 +177,15 @@ export class CreateOrderProvider {
       // Return payment with relations
       const result = await this.paymentRepository.findOne({
         where: { paymentId: savedPayment.paymentId },
-        relations: ['paymentDetails', 'sender', 'receiver', 'provider'],
+        relations: ['paymentDetails', 'buyer', 'seller', 'provider'],
       });
 
       return result;
-
     } catch (error) {
       // Rollback transaction on error
       await queryRunner.rollbackTransaction();
       console.error('Transaction failed, rolling back:', error);
-      
+
       throw new RequestTimeoutException(
         'Unable to process payment at the moment. Please try again later.',
         {

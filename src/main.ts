@@ -33,6 +33,7 @@ async function bootstrap() {
     )
     .addServer('http://localhost:3003')
     .setVersion('1.0')
+    .addBearerAuth()
     .build();
 
   // Instantiate Document

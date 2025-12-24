@@ -19,12 +19,12 @@ export class Payment {
   @Column({
     nullable: true,
   })
-  receiverId: string;
+  sellerId: string;
 
   @Column({
     nullable: false,
   })
-  senderId: string;
+  buyerId: string;
 
   @Column({ nullable: true })
   merchantId: number;
@@ -68,13 +68,13 @@ export class Payment {
   @Column({ nullable: true })
   ipAddress: string;
 
-  @ManyToOne(() => User, { nullable: true })
-  @JoinColumn({ name: 'receiverId', referencedColumnName: 'id' })
-  receiver: User;
+ @ManyToOne(() => User, { nullable: true })
+  @JoinColumn({ name: 'sellerId', referencedColumnName: 'id' })
+  seller: User;
 
   @ManyToOne(() => User, { nullable: false })
-  @JoinColumn({ name: 'senderId', referencedColumnName: 'id' })
-  sender: User;
+  @JoinColumn({ name: 'buyerId', referencedColumnName: 'id' })
+  buyer: User;
 
   @ManyToOne(() => PaymentProvider)
   @JoinColumn({ name: 'providerId' })
