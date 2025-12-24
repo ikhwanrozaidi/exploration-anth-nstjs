@@ -43,6 +43,16 @@ export class UserDetail {
   //   })
   // tier: TierType;
 
+  @Column({ 
+    nullable: true 
+  })
+  bankName: string;
+
+  @Column({ 
+    nullable: true 
+  })
+  bankNumber: string;
+
   @DeleteDateColumn()
   deletedAt: Date;
 

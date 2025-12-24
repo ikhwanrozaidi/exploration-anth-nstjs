@@ -132,3 +132,21 @@ export enum TierType {
   PREMIUM = 'premium',
   DIAMOND = 'diamond',
 }
+
+/**
+ * Wallet direction enumeration
+ */
+export enum WalletDirection {
+  IN = 'in',
+  OUT = 'out',
+}
+
+/**
+ * Wallet source enumeration
+ */
+export enum WalletSource {
+  TOPUP = 'topup',
+  ORDER = 'order',
+  RECEIVE = 'receive',
+  SEND = 'send',
+}

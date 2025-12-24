@@ -7,7 +7,7 @@ export class PaymentDetails {
   paymentId: string;
 
   @Column({ 
-    nullable: false 
+    nullable: true // just change to true
   })
   signature: string;
 
@@ -17,37 +17,38 @@ export class PaymentDetails {
   productName: string;
 
   @Column({ 
+    type: 'json',
     nullable: true 
   })
-  productDesc: string;
+  productDesc: string[];
 
   @Column({ 
     nullable: true 
   })
   productCat: string;
 
-  // @Column({ 
-  //   nullable: false,
-  //   type: 'decimal', 
-  //   precision: 10, 
-  //   scale: 2 
-  // })
-  // amount: number;
+  @Column({ 
+    nullable: false,
+    type: 'decimal', 
+    precision: 10, 
+    scale: 2 
+  })
+  amount: number;
 
-  // @Column({ 
-  //   nullable: false 
-  // })
-  // buyerName: string;
+  @Column({ 
+    nullable: false 
+  })
+  buyerName: string;
 
-  // @Column({ 
-  //   nullable: false 
-  // })
-  // buyerEmail: string;
+  @Column({ 
+    nullable: false 
+  })
+  buyerEmail: string;
 
-  // @Column({ 
-  //   nullable: true 
-  // })
-  // buyerPhone: string;
+  @Column({ 
+    nullable: true 
+  })
+  buyerPhone: string;
 
   @Column({ 
     nullable: true 
