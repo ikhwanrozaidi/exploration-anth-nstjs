@@ -50,6 +50,12 @@ export class Payment {
   })
   status: PaymentStatus;
 
+  @Column({ nullable: true })
+  merchantOrderId: string;
+
+  @Column({ default: false })
+  isCompleted: boolean;
+
   @Column()
   providerId: string;
 

@@ -1,3 +1,5 @@
+// src/auth/providers/refresh-tokens.provider.ts
+
 import { ActiveUserData } from '../interfaces/active-user-data.interface';
 import {
   Inject,
@@ -39,17 +41,19 @@ export class RefreshTokensProvider {
   public async refreshTokens(refreshTokenDto: RefreshTokenDto) {
     // Verify the refresh token using jwtService
     try {
-      const { sub } = await this.jwtService.verifyAsync<
-        Pick<ActiveUserData, 'sub'>
-      >(refreshTokenDto.refreshToken, {
-        secret: this.jwtConfiguration.secret,
-        audience: this.jwtConfiguration.audience,
-        issuer: this.jwtConfiguration.issuer,
-      });
+      const { sub } = await this.jwtService.verifyAsync<Pick<ActiveUserData, 'sub'>>(
+        refreshTokenDto.refreshToken,
+        {
+          secret: this.jwtConfiguration.secret,
+          audience: this.jwtConfiguration.audience,
+          issuer: this.jwtConfiguration.issuer,
+        },
+      );
+      
       // Fetch the user from the database
       const user = await this.usersService.findOneById(sub);
 
-      // Generate the tokens
+      // Generate the tokens (now includes expiration timestamps)
       return await this.generateTokensProvider.generateTokens(user);
     } catch (error) {
       throw new UnauthorizedException(error);

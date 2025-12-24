@@ -11,8 +11,10 @@ import { UserPaymentResponse } from '../interface/payment-user.interface';
 @Injectable()
 export class PaymentService {
   constructor(
+
     @InjectRepository(Payment)
     private readonly paymentRepository: Repository<Payment>,
+
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
   ) {}
@@ -158,10 +160,10 @@ async getPersonalPayments(userId: number): Promise<UserPaymentResponse[]> {
         productName: payment.paymentDetails.productName,
         productDesc: payment.paymentDetails.productDesc,
         productCat: payment.paymentDetails.productCat,
-        amount: Number(payment.paymentDetails.amount),
-        buyerName: payment.paymentDetails.buyerName,
-        buyerEmail: payment.paymentDetails.buyerEmail,
-        buyerPhone: payment.paymentDetails.buyerPhone,
+        // amount: Number(payment.paymentDetails.amount),
+        // buyerName: payment.paymentDetails.buyerName,
+        // buyerEmail: payment.paymentDetails.buyerEmail,
+        // buyerPhone: payment.paymentDetails.buyerPhone,
         refundable: payment.paymentDetails.refundable,
       } : null,
       receiver: payment.receiver ? {

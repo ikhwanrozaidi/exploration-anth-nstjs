@@ -1,6 +1,5 @@
 import { CreateUserDto } from './../dtos/create-user.dto';
 import { DataSource, Repository } from 'typeorm';
-import { GetUsersParamDto } from '../dtos/get-users-param.dto';
 import {
   BadRequestException,
   HttpException,
@@ -12,12 +11,14 @@ import {
 } from '@nestjs/common';
 import { User } from '../user.entity';
 import { InjectRepository } from '@nestjs/typeorm';
-import { ConfigService, ConfigType } from '@nestjs/config';
-import profileConfig from '../config/profile.config';
-import { UsersCreateManyProvider } from './users-create-many.provider';
-import { CreateManyUsersDto } from '../dtos/create-many-users.dto';
 import { CreateUserProvider } from './create-user.provider';
 import { FindOneUserByEmailProvider } from './find-one-user-by-email.provider';
+import { UpdateUserProfileProvider } from './update-user-profile.provider';
+import { UpdateUserProfileDto } from '../dtos/update-user-profile.dto';
+import { SetUsernameProvider } from './set-username.provider';
+import { ChangeUsernameProvider } from './change-username.provider';
+import { SetUsernameDto } from '../dtos/set-username.dto';
+import { ChangeUsernameDto } from '../dtos/change-username.dto';
 
 /**
  * Controller class for '/users' API endpoint
@@ -31,22 +32,18 @@ export class UsersService {
     @InjectRepository(User)
     private usersRepository: Repository<User>,
 
-    @Inject(profileConfig.KEY)
-    private readonly profileConfiguration: ConfigType<typeof profileConfig>,
-
     /**
-     * Inject UsersCreateMany provider
-     */
-    private readonly usersCreateManyProvider: UsersCreateManyProvider,
-    /**
-     * Inject Create Users Provider
+     * Import Providers
      */
     private readonly createUserProvider: CreateUserProvider,
 
-    /**
-     * Inject findOneUserByEmailProvider
-     */
     private readonly findOneUserByEmailProvider: FindOneUserByEmailProvider,
+
+    private readonly updateUserProfileProvider: UpdateUserProfileProvider,
+
+    private readonly setUsernameProvider: SetUsernameProvider,
+
+    private readonly changeUsernameProvider: ChangeUsernameProvider,
   ) {}
 
   /**
@@ -57,37 +54,15 @@ export class UsersService {
   }
 
   /**
-   * Public method responsible for handling GET request for '/users' endpoint
-   */
-  public findAll(
-    getUserParamDto: GetUsersParamDto,
-    limt: number,
-    page: number,
-  ) {
-    throw new HttpException(
-      {
-        status: HttpStatus.MOVED_PERMANENTLY,
-        error: 'The API endpoint does not exist',
-        fileName: 'users.service.ts',
-        lineNumber: 88,
-      },
-      HttpStatus.MOVED_PERMANENTLY,
-      {
-        cause: new Error(),
-        description: 'Occured because the API endpoint was permanently moved',
-      },
-    );
-  }
-
-  /**
    * Public method used to find one user using the ID of the user
    */
   public async findOneById(id: number) {
     let user = undefined;
 
     try {
-      user = await this.usersRepository.findOneBy({
-        id,
+      user = await this.usersRepository.findOne({
+        where: { id },
+        relations: ['userDetail', 'userSettings'], // Add relations
       });
     } catch (error) {
       throw new RequestTimeoutException(
@@ -108,12 +83,29 @@ export class UsersService {
     return user;
   }
 
-  public async createMany(createManyUsersDto: CreateManyUsersDto) {
-    return await this.usersCreateManyProvider.createMany(createManyUsersDto);
-  }
-
   // Finds one user by email
   public async findOneByEmail(email: string) {
     return await this.findOneUserByEmailProvider.findOneByEmail(email);
+  }
+
+  public async updateProfile(userId: number, updateDto: UpdateUserProfileDto) {
+    return await this.updateUserProfileProvider.updateProfile(
+      userId,
+      updateDto,
+    );
+  }
+
+  public async setUsername(userId: number, setUsernameDto: SetUsernameDto) {
+    return await this.setUsernameProvider.setUsername(userId, setUsernameDto);
+  }
+
+  public async changeUsername(
+    userId: number,
+    changeUsernameDto: ChangeUsernameDto,
+  ) {
+    return await this.changeUsernameProvider.changeUsername(
+      userId,
+      changeUsernameDto,
+    );
   }
 }

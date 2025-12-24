@@ -1,0 +1,7 @@
+POST http://localhost:3003/users/username
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjIsImVtYWlsIjoidGVzdHVzZXIyQGdhdGVwYXkuZGV2IiwiaWF0IjoxNzY1OTkxMTMxLCJleHAiOjE3NjU5OTQ3MzEsImF1ZCI6ImxvY2FsaG9zdDozMDAzIiwiaXNzIjoibG9jYWxob3N0OjMwMDMifQ.LMPAFg9fPb2pzmR31FdKEyG3vJ4wk7DQ1_Juj8fb7rU
+Content-Type: application/json
+
+{
+  "username": "testuser2"
+}

@@ -8,7 +8,7 @@ import enviromentValidation from './config/enviroment.validation';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import jwtConfig from './auth/config/jwt.config';
 import { JwtModule } from '@nestjs/jwt';
-import { APP_GUARD } from '@nestjs/core';
+import { APP_GUARD, APP_INTERCEPTOR, Reflector } from '@nestjs/core';
 import { AuthenticationGuard } from './auth/guards/authentication/authentication.guard';
 import { AccessTokenGuard } from './auth/guards/access-token/access-token.guard';
 import { UsersModule } from './users/users.module';
@@ -19,6 +19,8 @@ import { PaymentProviderModule } from './payment-provider/payment-provider.modul
 import { AuditLogModule } from './audit-log/audit-log.module';
 import { RoleBasedAccessGuard } from './auth/guards/role-based-access.guard';
 import { OutsideModule } from './outside/outside.module';
+import { TransformResponseInterceptor } from './common/interceptors/transform-response.interceptor';
+import { WalletModule } from './wallet/wallet.module';
 
 // Get the current NODE_ENV
 const ENV = process.env.NODE_ENV;
@@ -60,6 +62,7 @@ const ENV = process.env.NODE_ENV;
     PaymentProviderModule,
     AuditLogModule,
     OutsideModule,
+    WalletModule,
   ],
   controllers: [AppController],
   providers: [
@@ -71,6 +74,11 @@ const ENV = process.env.NODE_ENV;
     },
     AccessTokenGuard,
     RoleBasedAccessGuard,
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: TransformResponseInterceptor,
+    },
+    Reflector,
   ],
 })
 export class AppModule {}

@@ -180,10 +180,10 @@ export class BerrypayPaymentMappingProvider {
       productName: paymentPayload.productName,
       productDesc: paymentPayload.productDesc || null,
       productCat: paymentPayload.productCat || null,
-      amount: parseFloat(paymentPayload.productAmount),
-      buyerName: paymentPayload.buyerName,
-      buyerEmail: paymentPayload.buyerAccount,
-      buyerPhone: paymentPayload.buyerPhone?.toString() || null,
+      // amount: parseFloat(paymentPayload.productAmount),
+      // buyerName: paymentPayload.buyerName,
+      // buyerEmail: paymentPayload.buyerAccount,
+      // buyerPhone: paymentPayload.buyerPhone?.toString() || null,
       refundable: paymentPayload.isRefundable || false,
     });
 

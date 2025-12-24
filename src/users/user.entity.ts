@@ -3,7 +3,7 @@ import { Merchant } from '../merchant/merchant.entity';
 import { Payment } from '../payment/payment.entity';
 import { UserRole, UserStatus } from 'src/common/enums/app.enums';
 import { UserDetail } from './entity/user-detail.entity';
-import { UserSettings } from './entity/user-setting.entity';
+import { UserSettings } from './entity/user-settings.entity';
 
 @Entity('user')
 export class User {
@@ -23,6 +23,12 @@ export class User {
     default: UserRole.USER
   })
   role: UserRole;
+
+  @Column({ nullable: true, unique: true })
+  username: string;
+
+  @Column({ nullable: true })
+  usernameChangedAt: Date;
 
   @Column({ nullable: true, type: 'int' })
   merchantId?: number;

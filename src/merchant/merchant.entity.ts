@@ -34,6 +34,7 @@ export class Merchant {
   @Column()
   phone: string;
 
+  // Category need to be enum later
   @Column()
   category: number;
 

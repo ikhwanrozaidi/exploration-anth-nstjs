@@ -17,14 +17,15 @@ import {
   SetMetadata,
 } from '@nestjs/common';
 import { CreateUserDto } from './dtos/create-user.dto';
-import { GetUsersParamDto } from './dtos/get-users-param.dto';
-import { PatchUserDto } from './dtos/patch-user.dto';
 import { UsersService } from './providers/users.service';
 import { ApiTags, ApiQuery, ApiOperation, ApiResponse } from '@nestjs/swagger';
-import { CreateManyUsersDto } from './dtos/create-many-users.dto';
-import { AccessTokenGuard } from 'src/auth/guards/access-token/access-token.guard';
 import { Auth } from 'src/auth/decorators/auth.decorator';
 import { AuthType } from 'src/common/enums/app.enums';
+import { ActiveUser } from 'src/auth/decorators/active-user.decorator';
+import { ActiveUserData } from 'src/auth/interfaces/active-user-data.interface';
+import { UpdateUserProfileDto } from './dtos/update-user-profile.dto';
+import { SetUsernameDto } from './dtos/set-username.dto';
+import { ChangeUsernameDto } from './dtos/change-username.dto';
 
 @Controller('users')
 @ApiTags('Users')
@@ -34,51 +35,60 @@ export class UsersController {
     private readonly usersService: UsersService,
   ) {}
 
-  @Get('/:id?')
-  @ApiOperation({
-    summary: 'Fetches a list of registered users on the application',
-  })
-  @ApiResponse({
-    status: 200,
-    description: 'Users fetched successfully based on the query',
-  })
-  @ApiQuery({
-    name: 'limit',
-    type: 'number',
-    required: false,
-    description: 'The number of entries returned per query',
-    example: 10,
-  })
-  @ApiQuery({
-    name: 'page',
-    type: 'number',
-    required: false,
-    description:
-      'The position of the page number that you want the API to return',
-    example: 1,
-  })
-  public getUsers(
-    @Param() getUserParamDto: GetUsersParamDto,
-    @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number,
-    @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
-  ) {
-    return this.usersService.findAll(getUserParamDto, limit, page);
-  }
-
+  /// ===== To create a any user
   @Post()
-  // @SetMetadata('authType', 'none')
   @Auth(AuthType.None)
   public createUsers(@Body() createUserDto: CreateUserDto) {
     return this.usersService.createUser(createUserDto);
   }
 
-  @Post('create-many')
-  public createManyUsers(@Body() createManyUsersDto: CreateManyUsersDto) {
-    return this.usersService.createMany(createManyUsersDto);
+  /// ===== Edit user profile
+  @Patch('profile')
+  @Auth(AuthType.User)
+  @ApiOperation({ summary: 'Update user profile' })
+  @ApiResponse({ status: 200, description: 'Profile updated successfully' })
+  @ApiResponse({ status: 400, description: 'Email or phone already in use' })
+  @ApiResponse({ status: 404, description: 'User not found' })
+  public async updateProfile(
+    @ActiveUser() user: ActiveUserData,
+    @Body() updateDto: UpdateUserProfileDto,
+  ) {
+    return await this.usersService.updateProfile(user.sub, updateDto);
   }
 
-  @Patch()
-  public patchUser(@Body() patchUserDto: PatchUserDto) {
-    return patchUserDto;
+  @Post('username')
+  @Auth(AuthType.User)
+  @ApiOperation({ summary: 'Set username for the first time' })
+  @ApiResponse({ status: 201, description: 'Username set successfully' })
+  @ApiResponse({ status: 400, description: 'Username already set or taken' })
+  @ApiResponse({ status: 404, description: 'User not found' })
+  async setUsername(
+    @ActiveUser() user: ActiveUserData,
+    @Body() setUsernameDto: SetUsernameDto,
+  ) {
+    return await this.usersService.setUsername(user.sub, setUsernameDto);
+  }
+
+  @Put('username')
+  @Auth(AuthType.User)
+  @ApiOperation({
+    summary:
+      'Change username (requires KYC verification and 6 months cooldown)',
+  })
+  @ApiResponse({ status: 200, description: 'Username changed successfully' })
+  @ApiResponse({
+    status: 400,
+    description: 'Username already taken or same as current',
+  })
+  @ApiResponse({
+    status: 403,
+    description: 'KYC not verified or 6 months not passed',
+  })
+  @ApiResponse({ status: 404, description: 'User not found' })
+  async changeUsername(
+    @ActiveUser() user: ActiveUserData,
+    @Body() changeUsernameDto: ChangeUsernameDto,
+  ) {
+    return await this.usersService.changeUsername(user.sub, changeUsernameDto);
   }
 }

@@ -26,28 +26,28 @@ export class PaymentDetails {
   })
   productCat: string;
 
-  @Column({ 
-    nullable: false,
-    type: 'decimal', 
-    precision: 10, 
-    scale: 2 
-  })
-  amount: number;
+  // @Column({ 
+  //   nullable: false,
+  //   type: 'decimal', 
+  //   precision: 10, 
+  //   scale: 2 
+  // })
+  // amount: number;
 
-  @Column({ 
-    nullable: false 
-  })
-  buyerName: string;
+  // @Column({ 
+  //   nullable: false 
+  // })
+  // buyerName: string;
 
-  @Column({ 
-    nullable: false 
-  })
-  buyerEmail: string;
+  // @Column({ 
+  //   nullable: false 
+  // })
+  // buyerEmail: string;
 
-  @Column({ 
-    nullable: true 
-  })
-  buyerPhone: string;
+  // @Column({ 
+  //   nullable: true 
+  // })
+  // buyerPhone: string;
 
   @Column({ 
     nullable: true 

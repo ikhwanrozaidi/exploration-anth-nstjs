@@ -11,6 +11,9 @@ import { UsersModule } from '../users/users.module';
 import jwtConfig from './config/jwt.config';
 import { GenerateTokensProvider } from './providers/generate-tokens.provider';
 import { AuthService } from './providers/auth.service';
+import { OtpProvider } from './providers/otp.provider';
+import { VerifyOtpProvider } from './providers/verify-otp.provider';
+import { CacheModule } from '@nestjs/cache-manager';
 
 @Module({
   controllers: [AuthController],
@@ -24,11 +27,18 @@ import { AuthService } from './providers/auth.service';
     GenerateTokensProvider,
     RefreshTokensProvider,
     RoleValidatorProvider,
+    OtpProvider,
+    VerifyOtpProvider,
   ],
   imports: [
     forwardRef(() => UsersModule),
     ConfigModule.forFeature(jwtConfig),
     JwtModule.registerAsync(jwtConfig.asProvider()),
+    CacheModule.register({ 
+      ttl: 300,
+      max: 1000,
+    }),
+
   ],
   exports: [AuthService, HashingProvider, RoleValidatorProvider],
 })

@@ -2,9 +2,9 @@ POST http://localhost:3003/users
 Content-Type: application/json
 
 {
-  "email": "superadmin@gatepay.dev",
+  "email": "testuser2@gatepay.dev",
   "password": "Password123#",
-  "role": "superadmin",
+  "role": "user",
   "status": "active"
 }
 
