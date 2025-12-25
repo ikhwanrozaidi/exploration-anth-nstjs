@@ -1,0 +1,10 @@
+POST http://localhost:3003/wallet/request-withdrawal
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjIsImVtYWlsIjoidGVzdHVzZXIyQGdhdGVwYXkuZGV2IiwiaWF0IjoxNzY2NjM1OTg1LCJleHAiOjE3NjY2Mzk1ODUsImF1ZCI6ImxvY2FsaG9zdDozMDAzIiwiaXNzIjoibG9jYWxob3N0OjMwMDMifQ.g36ICSlaUmmd3upt7U2EWgoXxSO1XJrxVMy4m18IZEk
+Content-Type: application/json
+
+{
+  "amount": "10.20",
+  "bankName": "Maybank",
+  "bankAccount": "1234567890",
+  "currency": "MYR"
+}

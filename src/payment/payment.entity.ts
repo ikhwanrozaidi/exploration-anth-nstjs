@@ -19,12 +19,12 @@ export class Payment {
   @Column({
     nullable: true,
   })
-  sellerId: string;
+  sellerId: string; // was receiverId
 
   @Column({
     nullable: false,
   })
-  buyerId: string;
+  buyerId: string; // was senderId
 
   @Column({ nullable: true })
   merchantId: number;

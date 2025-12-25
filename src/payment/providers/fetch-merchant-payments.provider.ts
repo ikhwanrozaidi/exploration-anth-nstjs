@@ -1,35 +1,25 @@
-// src/payment/providers/payment.service.ts
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Payment } from '../payment.entity';
 import { User } from 'src/users/user.entity';
 import { UserPaymentResponse } from '../interface/payment-user.interface';
-import { CompletePaymentProvider } from './complete-payment.provider';
-import { GetUserPaymentsQueryDto } from '../dtos/get-user-payments-query.dto';
-import { UserPaymentSummary } from '../interface/payment-user-summary.interface';
-import { FetchUserPaymentsProvider } from './fetch-user-payments.provider';
-import { FetchMerchantPaymentsProvider } from './fetch-merchant-payments.provider';
 
 @Injectable()
-export class PaymentService {
+export class FetchMerchantPaymentsProvider {
   constructor(
     @InjectRepository(Payment)
     private readonly paymentRepository: Repository<Payment>,
 
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
-
-    private readonly completePaymentProvider: CompletePaymentProvider,
-    private readonly fetchUserPaymentsProvider: FetchUserPaymentsProvider,
-    private readonly fetchMerchantPaymentsProvider: FetchMerchantPaymentsProvider,
   ) {}
 
   /**
    * Get merchant payments (for Admin users)
    */
-  async getMerchantPayments(userId: number): Promise<UserPaymentResponse[]> {
-    console.log('PaymentService: Getting merchant payments for user ID:', userId);
+  async fetchMerchantPayments(userId: number): Promise<UserPaymentResponse[]> {
+    console.log('FetchMerchantPaymentsProvider: Getting merchant payments for user ID:', userId);
 
     try {
       // Get user details to check merchant ID
@@ -38,11 +28,11 @@ export class PaymentService {
       });
 
       if (!user) {
-        throw new Error('User not found');
+        throw new NotFoundException('User not found');
       }
 
       if (!user.merchantId) {
-        throw new Error('User is not associated with any merchant');
+        throw new NotFoundException('User is not associated with any merchant');
       }
 
       console.log('Getting merchant payments for merchantId:', user.merchantId);
@@ -50,7 +40,7 @@ export class PaymentService {
       // Get all payments for the merchant
       const payments = await this.paymentRepository.find({
         where: { merchantId: user.merchantId },
-        relations: ['paymentDetails', 'seller', 'buyer', 'provider'],
+        relations: ['paymentDetails', 'receiver', 'sender', 'provider'],
         order: { createdAt: 'DESC' }
       });
 
@@ -68,15 +58,6 @@ export class PaymentService {
     }
   }
 
-  /**
-   * Get personal payments with summary statistics
-   */
-  async getPersonalPayments(
-    userId: number,
-    queryDto: GetUserPaymentsQueryDto,
-  ): Promise<UserPaymentSummary> {
-    return await this.fetchUserPaymentsProvider.fetchUserPayments(userId, queryDto);
-  }
   /**
    * Map payment entity to response format with user role
    */
@@ -136,20 +117,5 @@ export class PaymentService {
         publicKey: payment.provider.publicKey,
       } : null,
     };
-  }
-
-  /**
-   * Complete payment with proof images
-   */
-  async completePayment(
-    userId: number,
-    paymentId: string,
-    proofImages: Express.Multer.File[],
-  ) {
-    return await this.completePaymentProvider.completePayment(
-      userId,
-      paymentId,
-      proofImages,
-    );
   }
 }

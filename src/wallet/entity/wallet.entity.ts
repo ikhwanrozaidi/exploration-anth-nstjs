@@ -1,6 +1,6 @@
-import { WalletDirection, WalletSource } from 'src/common/enums/app.enums';
+import { WalletDirection, WalletSource, WalletStatus } from 'src/common/enums/app.enums';
 import { User } from 'src/users/user.entity';
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn, CreateDateColumn } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn, CreateDateColumn, UpdateDateColumn } from 'typeorm';
 
 
 @Entity('wallet')
@@ -28,12 +28,21 @@ export class Wallet {
   @Column({
     type: 'enum',
     enum: WalletSource,
-    enumName: 'wallet_source_enum'
+    enumName: 'wallet_source_enum',
+    nullable: true,
   })
   source: WalletSource;
 
+  @Column({
+    type: 'enum',
+    enum: WalletStatus,
+    enumName: 'wallet_status_enum',
+    default: WalletStatus.PENDING
+  })
+  status: WalletStatus;
+
   @Column({ nullable: true })
-  receiverId: number;
+  oppositeId: number;
 
   @Column({ nullable: true })
   reference: string;
@@ -47,6 +56,9 @@ export class Wallet {
 
   @CreateDateColumn()
   createdAt: Date;
+
+  @UpdateDateColumn()
+  updatedAt: Date;
 
   @ManyToOne(() => User)
   @JoinColumn({ name: 'userId' })

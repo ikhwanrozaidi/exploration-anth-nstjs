@@ -150,3 +150,22 @@ export enum WalletSource {
   RECEIVE = 'receive',
   SEND = 'send',
 }
+
+/**
+ * Wallet status enumeration
+ */
+export enum WalletStatus {
+  PENDING = 'pending',
+  SUCCESS = 'success',
+  FAIL = 'fail',
+}
+
+/**
+ * Withdrawal status enumeration
+ */
+export enum WithdrawalStatus {
+  REQUESTED = 'requested',
+  PENDING = 'pending',
+  COMPLETE = 'complete',
+  FAIL = 'fail',
+}
