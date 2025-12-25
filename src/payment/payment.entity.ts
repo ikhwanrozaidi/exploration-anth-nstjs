@@ -17,14 +17,16 @@ export class Payment {
   paymentType: PaymentType;
 
   @Column({
+    type: 'int',
     nullable: true,
   })
-  sellerId: string; // was receiverId
+  sellerId: number;
 
   @Column({
+    type: 'int',
     nullable: false,
   })
-  buyerId: string; // was senderId
+  buyerId: number; 
 
   @Column({ nullable: true })
   merchantId: number;

@@ -11,16 +11,16 @@ export class PaymentMapperProvider {
     payment: Payment,
     userId: number,
   ): UserPaymentTransaction {
-    const userIdString = userId.toString();
+    // ✅ No string conversion needed - compare numbers directly
 
     // Determine user role: buyer or seller
     let userRole: 'buyer' | 'seller';
     
-    if (payment.buyerId === userIdString) {
+    if (payment.buyerId === userId) {  // ✅ Number comparison
       userRole = 'buyer';
     } else if (
-      payment.sellerId === userIdString || 
-      (payment.merchantId && payment.merchantId === userId)
+      payment.sellerId === userId ||  // ✅ Number comparison
+      payment.merchantId === userId   // ✅ Number comparison
     ) {
       userRole = 'seller';
     } else {
@@ -30,8 +30,8 @@ export class PaymentMapperProvider {
     return {
       paymentId: payment.paymentId,
       paymentType: payment.paymentType,
-      sellerId: payment.sellerId ? Number(payment.sellerId) : payment.merchantId,
-      buyerId: Number(payment.buyerId),
+      sellerId: payment.sellerId || payment.merchantId,  // ✅ Already a number
+      buyerId: payment.buyerId,  // ✅ Already a number
       merchantId: payment.merchantId,
       amount: Number(payment.amount),
       providerId: payment.providerId,

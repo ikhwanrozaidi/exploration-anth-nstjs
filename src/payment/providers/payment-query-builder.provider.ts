@@ -15,16 +15,15 @@ export class PaymentQueryBuilderProvider {
    * Build base query for user payments
    */
   buildUserPaymentsQuery(userId: number): SelectQueryBuilder<Payment> {
-    const userIdString = userId.toString();
 
     return this.paymentRepository
       .createQueryBuilder('payment')
       .leftJoinAndSelect('payment.paymentDetails', 'paymentDetails')
-      .leftJoinAndSelect('payment.seller', 'seller') // ✅ Changed from receiver
-      .leftJoinAndSelect('payment.buyer', 'buyer')   // ✅ Changed from sender
+      .leftJoinAndSelect('payment.seller', 'seller')
+      .leftJoinAndSelect('payment.buyer', 'buyer')
       .leftJoinAndSelect('payment.provider', 'provider')
-      .where('payment.buyerId = :userId OR payment.sellerId = :userId', {  // ✅ Changed field names
-        userId: userIdString 
+      .where('payment.buyerId = :userId OR payment.sellerId = :userId', {  
+        userId: userId
       });
   }
 

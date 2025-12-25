@@ -103,7 +103,6 @@ export class CreateOrderProvider {
     console.log('Gatepay balance after:', newGatepayBalance);
 
     // Step 5: Create transaction
-    // Step 5: Create transaction
     const queryRunner = this.dataSource.createQueryRunner();
     await queryRunner.connect();
     await queryRunner.startTransaction();
@@ -118,8 +117,8 @@ export class CreateOrderProvider {
       // 5b. Create Payment record
       const payment = queryRunner.manager.create(Payment, {
         paymentType: PaymentType.P2P,
-        buyerId: buyerId.toString(),
-        sellerId: seller.id.toString(),
+        buyerId: buyerId,
+        sellerId: seller.id,
         merchantId: null,
         amount: amount,
         isRequest: false,

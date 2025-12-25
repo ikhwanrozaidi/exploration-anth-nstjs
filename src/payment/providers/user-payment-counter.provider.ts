@@ -28,7 +28,7 @@ export class UserPaymentCounterProvider {
     console.log('UserPaymentCounterProvider: Calculating statistics for user:', userId);
     console.log('Total payments received:', payments.length);
 
-    const userIdString = userId.toString();
+    // ✅ No need to convert to string anymore - compare numbers directly
 
     // 1. Count ALL completed orders (regardless of buyer/seller role)
     const completeOrder = payments.filter(p => p.isCompleted).length;
@@ -36,8 +36,8 @@ export class UserPaymentCounterProvider {
 
     // 2. User is SELLER (sellerId or merchantId matches userId)
     const sellerPayments = payments.filter(p => 
-      p.sellerId === userIdString || 
-      (p.merchantId && p.merchantId === userId)
+      p.sellerId === userId ||  // ✅ Number comparison
+      p.merchantId === userId   // ✅ Number comparison
     );
     console.log('Seller payments count:', sellerPayments.length);
 
@@ -56,7 +56,7 @@ export class UserPaymentCounterProvider {
 
     // 3. User is BUYER (buyerId matches userId)
     const buyerPayments = payments.filter(p => 
-      p.buyerId === userIdString
+      p.buyerId === userId  // ✅ Number comparison
     );
     console.log('Buyer payments count:', buyerPayments.length);
 

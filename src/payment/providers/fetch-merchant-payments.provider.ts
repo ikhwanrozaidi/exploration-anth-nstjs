@@ -18,14 +18,13 @@ export class FetchMerchantPaymentsProvider {
   /**
    * Get merchant payments (for Admin users)
    */
-  async fetchMerchantPayments(userId: number): Promise<UserPaymentResponse[]> {
-    console.log('FetchMerchantPaymentsProvider: Getting merchant payments for user ID:', userId);
+async fetchMerchantPayments(userId: number): Promise<UserPaymentResponse[]> {
+  console.log('FetchMerchantPaymentsProvider: Getting merchant payments for user ID:', userId);
 
-    try {
-      // Get user details to check merchant ID
-      const user = await this.userRepository.findOne({
-        where: { id: userId }
-      });
+  try {
+    const user = await this.userRepository.findOne({
+      where: { id: userId }
+    });
 
       if (!user) {
         throw new NotFoundException('User not found');
@@ -45,9 +44,9 @@ export class FetchMerchantPaymentsProvider {
       });
 
       // Map payments to response format (all will be marked as 'merchant' role)
-      const paymentResponses = payments.map(payment => 
-        this.mapPaymentToResponse(payment, userId.toString(), user.merchantId)
-      );
+     const paymentResponses = payments.map(payment => 
+      this.mapPaymentToResponse(payment, userId, user.merchantId)
+    );
 
       console.log(`Found ${paymentResponses.length} merchant payments`);
       return paymentResponses;
@@ -61,28 +60,28 @@ export class FetchMerchantPaymentsProvider {
   /**
    * Map payment entity to response format with user role
    */
-  private mapPaymentToResponse(
-    payment: Payment, 
-    userId: string, 
-    userMerchantId: number | null
-  ): UserPaymentResponse {
-    let userRole: 'buyer' | 'seller' | 'merchant';
+private mapPaymentToResponse(
+  payment: Payment, 
+  userId: number,
+  userMerchantId: number | null
+): UserPaymentResponse {
+  let userRole: 'sender' | 'receiver' | 'merchant';
 
-    if (userMerchantId && payment.merchantId === userMerchantId) {
-      userRole = 'merchant';
-    } else if (payment.buyerId === userId) {
-      userRole = 'buyer';
-    } else if (payment.sellerId === userId) {
-      userRole = 'seller';
-    } else {
-      userRole = 'buyer';
-    }
+  if (userMerchantId && payment.merchantId === userMerchantId) {
+    userRole = 'merchant';
+  } else if (payment.buyerId === userId) {
+    userRole = 'sender';
+  } else if (payment.sellerId === userId) {
+    userRole = 'receiver';
+  } else {
+    userRole = 'sender';
+  }
 
-    return {
-      paymentId: payment.paymentId,
-      paymentType: payment.paymentType,
-      sellerId: payment.sellerId,
-      buyerId: payment.buyerId,
+  return {
+    paymentId: payment.paymentId,
+    paymentType: payment.paymentType,
+    receiverId: payment.sellerId?.toString(),
+    senderId: payment.buyerId.toString(),
       merchantId: payment.merchantId,
       amount: Number(payment.amount),
       isRequest: payment.isRequest,

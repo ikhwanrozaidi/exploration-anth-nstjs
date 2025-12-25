@@ -1,8 +1,8 @@
 export interface UserPaymentResponse {
   paymentId: string;
   paymentType: string;
-  sellerId: string | null;
-  buyerId: string;
+  sellerId: number | null;
+  buyerId: number;
   merchantId: number | null;
   amount: number;
   isRequest: boolean;
