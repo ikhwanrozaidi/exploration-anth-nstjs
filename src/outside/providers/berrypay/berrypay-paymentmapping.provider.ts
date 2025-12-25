@@ -150,7 +150,7 @@ export class BerrypayPaymentMappingProvider {
     const payment = this.paymentRepository.create({
       paymentType: PaymentType.GATEWAY, // Set to GATEWAY since it has merchantId
       sellerId: null, // Set to null as specified
-      buyerId: senderUser.id.toString(), // Convert to string
+      buyerId: senderUser.id, // Convert to string
       merchantId: paymentSession.merchantId,
       amount: parseFloat(paymentPayload.productAmount),
       isRequest: false, // Set to false since it has merchantId

@@ -18,13 +18,13 @@ export class FetchMerchantPaymentsProvider {
   /**
    * Get merchant payments (for Admin users)
    */
-async fetchMerchantPayments(userId: number): Promise<UserPaymentResponse[]> {
-  console.log('FetchMerchantPaymentsProvider: Getting merchant payments for user ID:', userId);
+  async fetchMerchantPayments(userId: number): Promise<UserPaymentResponse[]> {
+    console.log('FetchMerchantPaymentsProvider: Getting merchant payments for user ID:', userId);
 
-  try {
-    const user = await this.userRepository.findOne({
-      where: { id: userId }
-    });
+    try {
+      const user = await this.userRepository.findOne({
+        where: { id: userId }
+      });
 
       if (!user) {
         throw new NotFoundException('User not found');
@@ -39,14 +39,14 @@ async fetchMerchantPayments(userId: number): Promise<UserPaymentResponse[]> {
       // Get all payments for the merchant
       const payments = await this.paymentRepository.find({
         where: { merchantId: user.merchantId },
-        relations: ['paymentDetails', 'receiver', 'sender', 'provider'],
+        relations: ['paymentDetails', 'seller', 'buyer', 'provider'],
         order: { createdAt: 'DESC' }
       });
 
       // Map payments to response format (all will be marked as 'merchant' role)
-     const paymentResponses = payments.map(payment => 
-      this.mapPaymentToResponse(payment, userId, user.merchantId)
-    );
+      const paymentResponses = payments.map(payment => 
+        this.mapPaymentToResponse(payment, userId, user.merchantId)
+      );
 
       console.log(`Found ${paymentResponses.length} merchant payments`);
       return paymentResponses;
@@ -60,28 +60,28 @@ async fetchMerchantPayments(userId: number): Promise<UserPaymentResponse[]> {
   /**
    * Map payment entity to response format with user role
    */
-private mapPaymentToResponse(
-  payment: Payment, 
-  userId: number,
-  userMerchantId: number | null
-): UserPaymentResponse {
-  let userRole: 'sender' | 'receiver' | 'merchant';
+  private mapPaymentToResponse(
+    payment: Payment, 
+    userId: number,
+    userMerchantId: number | null
+  ): UserPaymentResponse {
+    let userRole: 'buyer' | 'seller' | 'merchant';
 
-  if (userMerchantId && payment.merchantId === userMerchantId) {
-    userRole = 'merchant';
-  } else if (payment.buyerId === userId) {
-    userRole = 'sender';
-  } else if (payment.sellerId === userId) {
-    userRole = 'receiver';
-  } else {
-    userRole = 'sender';
-  }
+    if (userMerchantId && payment.merchantId === userMerchantId) {
+      userRole = 'merchant';
+    } else if (payment.buyerId === userId) {
+      userRole = 'buyer';
+    } else if (payment.sellerId === userId) {
+      userRole = 'seller';
+    } else {
+      userRole = 'buyer';
+    }
 
-  return {
-    paymentId: payment.paymentId,
-    paymentType: payment.paymentType,
-    receiverId: payment.sellerId?.toString(),
-    senderId: payment.buyerId.toString(),
+    return {
+      paymentId: payment.paymentId,
+      paymentType: payment.paymentType,
+      sellerId: payment.sellerId,
+      buyerId: payment.buyerId,
       merchantId: payment.merchantId,
       amount: Number(payment.amount),
       isRequest: payment.isRequest,
