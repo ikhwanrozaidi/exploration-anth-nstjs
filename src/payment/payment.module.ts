@@ -15,6 +15,7 @@ import { FetchMerchantPaymentsProvider } from './providers/fetch-merchant-paymen
 import { PaymentQueryBuilderProvider } from './providers/payment-query-builder.provider';
 import { PaymentMapperProvider } from './providers/payment-mapper.provider';
 import { UserPaymentCounterProvider } from './providers/user-payment-counter.provider';
+import { Wallet } from 'src/wallet/entity/wallet.entity';
 
 @Module({
   controllers: [PaymentController],
@@ -33,6 +34,7 @@ import { UserPaymentCounterProvider } from './providers/user-payment-counter.pro
       Payment,
       PaymentDetails,
       User,
+      Wallet,
     ]),
     ConfigModule.forFeature(spacesDoConfig),
   ],

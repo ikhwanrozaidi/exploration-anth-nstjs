@@ -5,7 +5,9 @@ import { CreatePaymentProviderDto } from './dtos/create-paymentprovider.dto';
 import { AuthType } from 'src/common/enums/app.enums';
 import { Auth } from 'src/auth/decorators/auth.decorator';
 import { UpdatePaymentProviderDto } from './dtos/update-paymentprovider.dto';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 
+@ApiTags('Payment Provider')
 @Controller('payment-providers')
 export class PaymentProviderController {
   constructor(
@@ -16,6 +18,7 @@ export class PaymentProviderController {
 
   @Post()
   @Auth(AuthType.SuperAdmin)
+  @ApiBearerAuth()
   public async create(@Body() createPaymentProviderDto: CreatePaymentProviderDto): Promise<{
     statusCode: number;
     message: string;

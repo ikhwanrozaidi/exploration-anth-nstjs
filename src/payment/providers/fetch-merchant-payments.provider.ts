@@ -17,6 +17,7 @@ export class FetchMerchantPaymentsProvider {
 
   /**
    * Get merchant payments (for Admin users)
+   * All comparisons use numbers (sellerId, buyerId, merchantId are all numbers)
    */
   async fetchMerchantPayments(userId: number): Promise<UserPaymentResponse[]> {
     console.log('FetchMerchantPaymentsProvider: Getting merchant payments for user ID:', userId);
@@ -43,7 +44,7 @@ export class FetchMerchantPaymentsProvider {
         order: { createdAt: 'DESC' }
       });
 
-      // Map payments to response format (all will be marked as 'merchant' role)
+      // Map payments to response format
       const paymentResponses = payments.map(payment => 
         this.mapPaymentToResponse(payment, userId, user.merchantId)
       );
@@ -59,6 +60,7 @@ export class FetchMerchantPaymentsProvider {
 
   /**
    * Map payment entity to response format with user role
+   * All comparisons use numbers (sellerId, buyerId, merchantId are all numbers)
    */
   private mapPaymentToResponse(
     payment: Payment, 

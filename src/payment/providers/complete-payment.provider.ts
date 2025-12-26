@@ -6,10 +6,11 @@ import {
   ForbiddenException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, DataSource } from 'typeorm';
 import { Payment } from '../payment.entity';
 import { User } from 'src/users/user.entity';
-import { PaymentStatus, PaymentType } from 'src/common/enums/app.enums';
+import { Wallet } from 'src/wallet/entity/wallet.entity';
+import { PaymentStatus, WalletDirection, WalletSource, WalletStatus } from 'src/common/enums/app.enums';
 import { PaymentProofUploadProvider, ProofUploadResult } from './payment-proof-upload.provider';
 
 @Injectable()
@@ -21,11 +22,17 @@ export class CompletePaymentProvider {
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
 
+    @InjectRepository(Wallet)
+    private readonly walletRepository: Repository<Wallet>,
+
     private readonly proofUploadProvider: PaymentProofUploadProvider,
+
+    private readonly dataSource: DataSource,
   ) {}
 
   /**
    * Mark payment as completed with proof images
+   * All comparisons use numbers (sellerId, buyerId, merchantId are all numbers)
    */
   async completePayment(
     userId: number,
@@ -50,8 +57,7 @@ export class CompletePaymentProvider {
     }
 
     // Step 2: Verify BUYER is marking as complete
-    const userIdString = userId.toString();
-    if (payment.buyerId !== userIdString) {
+    if (payment.buyerId !== userId) {
       throw new ForbiddenException(
         'Only the buyer can confirm receipt and mark payment as completed'
       );
@@ -70,103 +76,88 @@ export class CompletePaymentProvider {
       );
     }
 
-    // Step 4: Upload proof images
-    const uploadedProofs = await this.proofUploadProvider.uploadProofImages(
+    // Step 4: Validate proof images
+    if (!proofImages || proofImages.length === 0) {
+      throw new BadRequestException('At least one proof image is required');
+    }
+
+    if (proofImages.length > 5) {
+      throw new BadRequestException('Maximum 5 proof images allowed');
+    }
+
+    console.log('Uploading', proofImages.length, 'proof images');
+
+    // Step 5: Upload proof images
+    const uploadResults = await this.proofUploadProvider.uploadProofImages(
       proofImages,
       paymentId,
     );
 
-    console.log('Proof images uploaded successfully');
+    console.log('Proof images uploaded successfully:', uploadResults.length);
 
-    // Step 5: Release funds from escrow
-    await this.releaseFunds(payment);
-
-    // Step 6: Mark payment as completed
-    payment.isCompleted = true;
-    payment.updatedAt = new Date();
-
-    const updatedPayment = await this.paymentRepository.save(payment);
-
-    console.log('Payment marked as completed successfully');
-
-    return {
-      payment: updatedPayment,
-      proofImages: uploadedProofs,
-    };
-  }
-
-  /**
-   * Release funds from escrow to recipient
-   */
-  private async releaseFunds(payment: Payment): Promise<void> {
-    console.log('Releasing funds from escrow...');
-
-    if (payment.paymentType === PaymentType.GATEWAY) {
-      // Gateway: Release to merchant owner's wallet
-      await this.releaseToMerchant(payment);
-    } else if (payment.paymentType === PaymentType.P2P) {
-      // P2P: Release to seller's wallet
-      await this.releaseToSeller(payment);
-    }
-  }
-
-  /**
-   * Release funds to merchant owner's wallet
-   */
-  private async releaseToMerchant(payment: Payment): Promise<void> {
-    if (!payment.merchantId) {
-      throw new BadRequestException('Merchant ID is required for gateway payments');
-    }
-
-    // Find user who owns this merchant
-    const merchantOwner = await this.userRepository.findOne({
-      where: { merchantId: payment.merchantId }
-    });
-
-    if (!merchantOwner) {
-      throw new NotFoundException(
-        `No user found for merchant ID ${payment.merchantId}`
-      );
-    }
-
-    console.log(`Releasing ${payment.amount} to merchant owner (User ${merchantOwner.id})`);
-
-    // Add funds to merchant owner's wallet
-    const currentBalance = parseFloat(merchantOwner.balance.toString());
-    const paymentAmount = parseFloat(payment.amount.toString());
-    merchantOwner.balance = currentBalance + paymentAmount;
-
-    await this.userRepository.save(merchantOwner);
-
-    console.log(`Merchant owner balance updated: ${merchantOwner.balance}`);
-  }
-
-  /**
-   * Release funds to seller's wallet (P2P)
-   */
-  private async releaseToSeller(payment: Payment): Promise<void> {
-    if (!payment.sellerId) {
-      throw new BadRequestException('Seller ID is required for P2P payments');
-    }
-
-    // Find seller
+    // Step 6: Get seller user
     const seller = await this.userRepository.findOne({
-      where: { id: parseInt(payment.sellerId) }
+      where: { id: payment.sellerId }
     });
 
     if (!seller) {
-      throw new NotFoundException(`Seller with ID ${payment.sellerId} not found`);
+      throw new NotFoundException('Seller not found');
     }
 
-    console.log(`Releasing ${payment.amount} to seller (User ${seller.id})`);
+    // Step 7: Use transaction to update seller balance, create wallet record, and mark payment complete
+    const queryRunner = this.dataSource.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
 
-    // Add funds to seller's wallet
-    const currentBalance = parseFloat(seller.balance.toString());
-    const paymentAmount = parseFloat(payment.amount.toString());
-    seller.balance = currentBalance + paymentAmount;
+    try {
+      const paymentAmount = parseFloat(payment.amount.toString());
+      const currentBalance = parseFloat(seller.balance.toString());
+      const newBalance = currentBalance + paymentAmount;
 
-    await this.userRepository.save(seller);
+      // 7a. Update seller balance
+      seller.balance = newBalance;
+      await queryRunner.manager.save(seller);
 
-    console.log(`Seller balance updated: ${seller.balance}`);
+      console.log('Transferred', paymentAmount, 'to seller ID:', seller.id);
+      console.log('Seller new balance:', newBalance);
+
+      // 7b. Create wallet transaction record
+      const walletRecord = queryRunner.manager.create(Wallet, {
+        userId: seller.id,
+        amount: paymentAmount,
+        direction: WalletDirection.IN,
+        balance: newBalance,
+        source: WalletSource.ORDER,
+        status: WalletStatus.SUCCESS,
+        oppositeId: payment.buyerId,
+        reference: `ORDER_COMPLETE_${payment.paymentId}`,
+      });
+
+      await queryRunner.manager.save(walletRecord);
+      console.log('Wallet record created for seller:', walletRecord.id);
+
+      // 7c. Mark payment as completed
+      payment.isCompleted = true;
+      await queryRunner.manager.save(payment);
+
+      console.log('Payment marked as completed:', payment.paymentId);
+
+      // Commit transaction
+      await queryRunner.commitTransaction();
+
+      return {
+        payment: payment,
+        proofImages: uploadResults,
+      };
+
+    } catch (error) {
+      // Rollback transaction on error
+      await queryRunner.rollbackTransaction();
+      console.error('Error completing payment:', error);
+      throw new BadRequestException('Failed to complete payment. Please try again.');
+    } finally {
+      // Release query runner
+      await queryRunner.release();
+    }
   }
 }

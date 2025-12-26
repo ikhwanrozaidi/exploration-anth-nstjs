@@ -13,16 +13,16 @@ export class PaymentQueryBuilderProvider {
 
   /**
    * Build base query for user payments
+   * All comparisons use numbers (sellerId, buyerId, merchantId are all numbers)
    */
   buildUserPaymentsQuery(userId: number): SelectQueryBuilder<Payment> {
-
     return this.paymentRepository
       .createQueryBuilder('payment')
       .leftJoinAndSelect('payment.paymentDetails', 'paymentDetails')
       .leftJoinAndSelect('payment.seller', 'seller')
       .leftJoinAndSelect('payment.buyer', 'buyer')
       .leftJoinAndSelect('payment.provider', 'provider')
-      .where('payment.buyerId = :userId OR payment.sellerId = :userId', {  
+      .where('payment.buyerId = :userId OR payment.sellerId = :userId OR payment.merchantId = :userId', {  
         userId: userId
       });
   }
@@ -31,69 +31,79 @@ export class PaymentQueryBuilderProvider {
    * Apply filters to query
    */
   applyFilters(
-    query: SelectQueryBuilder<Payment>,
+    queryBuilder: SelectQueryBuilder<Payment>,
     queryDto: GetUserPaymentsQueryDto,
   ): SelectQueryBuilder<Payment> {
-    // Date range filter
+    // Filter by date range
     if (queryDto.fromDate) {
-      query = query.andWhere('payment.createdAt >= :fromDate', { 
-        fromDate: new Date(queryDto.fromDate) 
+      queryBuilder.andWhere('payment.createdAt >= :fromDate', {
+        fromDate: queryDto.fromDate,
       });
     }
 
     if (queryDto.toDate) {
-      const toDate = new Date(queryDto.toDate);
-      toDate.setHours(23, 59, 59, 999); // End of day
-      query = query.andWhere('payment.createdAt <= :toDate', { toDate });
+      queryBuilder.andWhere('payment.createdAt <= :toDate', {
+        toDate: queryDto.toDate,
+      });
     }
 
-    // Status filter
+    // Filter by status
     if (queryDto.status) {
-      query = query.andWhere('payment.status = :status', { 
-        status: queryDto.status 
+      queryBuilder.andWhere('payment.status = :status', {
+        status: queryDto.status,
       });
     }
 
-    // Payment type filter
+    // Filter by payment type
     if (queryDto.paymentType) {
-      query = query.andWhere('payment.paymentType = :paymentType', { 
-        paymentType: queryDto.paymentType 
+      queryBuilder.andWhere('payment.paymentType = :paymentType', {
+        paymentType: queryDto.paymentType,
       });
     }
 
-    return query;
+    return queryBuilder;
   }
 
   /**
    * Apply sorting
    */
   applySorting(
-    query: SelectQueryBuilder<Payment>,
+    queryBuilder: SelectQueryBuilder<Payment>,
     sortOrder: 'asc' | 'desc',
   ): SelectQueryBuilder<Payment> {
-    return query.orderBy(
-      'payment.createdAt', 
-      sortOrder.toUpperCase() as 'ASC' | 'DESC'
-    );
+    return queryBuilder.orderBy('payment.createdAt', sortOrder.toUpperCase() as 'ASC' | 'DESC');
   }
 
   /**
    * Apply pagination
    */
-  async applyPagination(
-    query: SelectQueryBuilder<Payment>,
+  applyPagination(
+    queryBuilder: SelectQueryBuilder<Payment>,
     page: number,
     limit: number,
-  ): Promise<Payment[]> {
+  ): SelectQueryBuilder<Payment> {
+    // If limit is 0, return all results (no pagination)
     if (limit === 0) {
-      // Return all
-      return await query.getMany();
+      return queryBuilder;
     }
 
     const skip = (page - 1) * limit;
-    return await query
-      .skip(skip)
-      .take(limit)
-      .getMany();
+    return queryBuilder.skip(skip).take(limit);
+  }
+
+  /**
+   * Build complete query with all filters, sorting, and pagination
+   */
+  buildCompleteQuery(
+    userId: number,
+    queryDto: GetUserPaymentsQueryDto,
+  ): SelectQueryBuilder<Payment> {
+    let queryBuilder = this.buildUserPaymentsQuery(userId);
+    
+    queryBuilder = this.applyFilters(queryBuilder, queryDto);
+    queryBuilder = this.applySorting(queryBuilder, queryDto.sortOrder);
+    queryBuilder = this.applyPagination(queryBuilder, queryDto.page, queryDto.limit);
+
+    return queryBuilder;
   }
 }

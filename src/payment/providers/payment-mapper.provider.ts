@@ -6,22 +6,18 @@ import { UserPaymentTransaction } from '../interface/payment-user-summary.interf
 export class PaymentMapperProvider {
   /**
    * Map payment entity to transaction response
+   * All comparisons use numbers (sellerId, buyerId, merchantId are all numbers)
    */
   mapPaymentToTransaction(
     payment: Payment,
     userId: number,
   ): UserPaymentTransaction {
-    // ✅ No string conversion needed - compare numbers directly
-
     // Determine user role: buyer or seller
     let userRole: 'buyer' | 'seller';
     
-    if (payment.buyerId === userId) {  // ✅ Number comparison
+    if (payment.buyerId === userId) {
       userRole = 'buyer';
-    } else if (
-      payment.sellerId === userId ||  // ✅ Number comparison
-      payment.merchantId === userId   // ✅ Number comparison
-    ) {
+    } else if (payment.sellerId === userId || payment.merchantId === userId) {
       userRole = 'seller';
     } else {
       userRole = 'buyer'; // Default fallback
@@ -30,8 +26,8 @@ export class PaymentMapperProvider {
     return {
       paymentId: payment.paymentId,
       paymentType: payment.paymentType,
-      sellerId: payment.sellerId || payment.merchantId,  // ✅ Already a number
-      buyerId: payment.buyerId,  // ✅ Already a number
+      sellerId: payment.sellerId || payment.merchantId,
+      buyerId: payment.buyerId,
       merchantId: payment.merchantId,
       amount: Number(payment.amount),
       providerId: payment.providerId,

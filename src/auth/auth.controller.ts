@@ -15,11 +15,12 @@ import { RefreshTokenDto } from './dtos/refresh-token.dto';
 import { VerifyOtpProvider } from './providers/verify-otp.provider';
 import { OtpProvider } from './providers/otp.provider';
 import { ResponseMessage } from 'src/common/decorators/response-message.decorator';
-import { ApiOperation, ApiResponse } from '@nestjs/swagger';
+import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { VerifyOtpDto } from './dtos/verify-otp.dto';
 import { ResendOtpDto } from './dtos/resend-otp.dto';
 
 @Controller('auth')
+@ApiTags('Auth')
 export class AuthController {
   constructor(
     /*
@@ -228,9 +229,9 @@ export class AuthController {
     return this.authService.refreshTokens(refreshTokenDto);
   }
 
-  @Get('system-config')
-  @Auth(AuthType.Admin)
-  getSystemConfig() {
-    return 'System configuration - SuperAdmin only';
-  }
+  // @Get('system-config')
+  // @Auth(AuthType.Admin)
+  // getSystemConfig() {
+  //   return 'System configuration - SuperAdmin only';
+  // }
 }

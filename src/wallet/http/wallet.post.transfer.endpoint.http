@@ -1,0 +1,9 @@
+POST http://localhost:3003/wallet/transfer
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjIsImVtYWlsIjoidGVzdHVzZXIyQGdhdGVwYXkuZGV2IiwiaWF0IjoxNzY2NjY4MDg1LCJleHAiOjE3NjY2NzE2ODUsImF1ZCI6ImxvY2FsaG9zdDozMDAzIiwiaXNzIjoibG9jYWxob3N0OjMwMDMifQ.jZ_CrH_pieIVj2lGR4ynNrX4RCtT4hY7WevVtlMNAec
+Content-Type: application/json
+
+{
+  "amount": "10.50",
+  "username": "testuser3",
+  "reference": "test transfer 001"
+}

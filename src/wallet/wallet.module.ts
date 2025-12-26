@@ -6,12 +6,14 @@ import { Wallet } from './entity/wallet.entity';
 import { Withdrawal } from './entity/withdrawal.entity';
 import { RequestWithdrawalProvider } from './providers/request-withdrawal.provider';
 import { User } from 'src/users/user.entity';
+import { TransferWalletProvider } from './providers/transfer-wallet.provider';
 
 @Module({
   controllers: [WalletController],
   providers: [
     WalletService,
     RequestWithdrawalProvider,
+    TransferWalletProvider,
   ],
   imports: [
     TypeOrmModule.forFeature([

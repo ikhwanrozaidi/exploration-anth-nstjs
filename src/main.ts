@@ -24,15 +24,15 @@ async function bootstrap() {
    * swagger configuration
    */
   const config = new DocumentBuilder()
-    .setTitle('NestJS Gatepay Dev')
-    .setDescription('Use the base API URL as http://localhost:3003')
-    .setTermsOfService('http://localhost:3003/terms-of-service')
+    .setTitle('Gatepay API')
+    .setDescription('Use the base API URL as https://secure.gatepay.dev')
+    .setTermsOfService('http://secure.gatepay.dev/terms-of-service')
     .setLicense(
       'MIT License',
       'https://github.com/git/git-scm.com/blob/main/MIT-LICENSE.txt',
     )
     .addServer('http://localhost:3003')
-    .setVersion('1.0')
+    .setVersion('0.0.2')
     .addBearerAuth()
     .build();
 

@@ -1,5 +1,5 @@
 import { Body, Controller, Get, HttpCode, HttpStatus, Param, ParseIntPipe, Post, Put } from '@nestjs/common';
-import { ApiOperation, ApiParam, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiOperation, ApiParam, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { MerchantService } from './providers/merchant.service';
 import { Auth } from 'src/auth/decorators/auth.decorator';
 import { AuthType } from 'src/common/enums/app.enums';
@@ -20,6 +20,7 @@ export class MerchantController {
     @Post()
     @HttpCode(HttpStatus.CREATED)
     @Auth(AuthType.SuperAdmin)
+    @ApiBearerAuth()
     @ApiOperation({ summary: 'Create a new merchant' })
     @ApiResponse({
         status: 201,
@@ -45,6 +46,7 @@ export class MerchantController {
     @Post(':id/details')
     @HttpCode(HttpStatus.CREATED)
     @Auth(AuthType.SuperAdmin)
+    @ApiBearerAuth()
     @ApiOperation({ summary: 'Create merchant detail for existing merchant' })
     @ApiParam({ name: 'id', type: 'number', description: 'Merchant ID' })
     @ApiResponse({
@@ -78,6 +80,7 @@ export class MerchantController {
     @Get()
     @HttpCode(HttpStatus.OK)
     @Auth(AuthType.SuperAdmin)
+    @ApiBearerAuth()
     @ApiOperation({ summary: 'Fetch all merchants with details (Superadmin only)' })
     @ApiResponse({
         status: 200,
@@ -99,6 +102,7 @@ export class MerchantController {
     @Put(':id/status')
     @HttpCode(HttpStatus.OK)
     @Auth(AuthType.SuperAdmin)
+    @ApiBearerAuth()
     @ApiOperation({ summary: 'Update merchant status (Superadmin only)' })
     @ApiParam({ name: 'id', type: 'number', description: 'Merchant ID' })
     @ApiResponse({

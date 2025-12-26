@@ -61,7 +61,7 @@ export class TransformResponseInterceptor<T>
         if (!message) {
           switch (request.method) {
             case 'POST':
-              message = 'Resource created successfully';
+              message = 'Resource created/fetch successfully';
               break;
             case 'PUT':
             case 'PATCH':

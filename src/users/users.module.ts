@@ -14,6 +14,7 @@ import { UsersService } from './providers/users.service';
 import { UpdateUserProfileProvider } from './providers/update-user-profile.provider';
 import { SetUsernameProvider } from './providers/set-username.provider';
 import { ChangeUsernameProvider } from './providers/change-username.provider';
+import { SearchUserProvider } from './providers/search-user.provider';
 
 @Module({
   controllers: [UsersController],
@@ -25,6 +26,7 @@ import { ChangeUsernameProvider } from './providers/change-username.provider';
     UpdateUserProfileProvider,
     SetUsernameProvider,
     ChangeUsernameProvider,
+    SearchUserProvider,
   ],
   exports: [UsersService],
   imports: [

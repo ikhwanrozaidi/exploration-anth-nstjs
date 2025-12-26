@@ -7,6 +7,7 @@ import { ActiveUserData } from 'src/auth/interfaces/active-user-data.interface';
 import { AuthType } from 'src/common/enums/app.enums';
 import { RequestWithdrawalDto } from './dtos/request-withdrawal.dto';
 import { ResponseMessage } from 'src/common/decorators/response-message.decorator';
+import { TransferWalletDto } from './dtos/transfer-wallet.dto';
 
 @ApiTags('Wallet')
 @Controller('wallet')
@@ -84,5 +85,56 @@ export class WalletController {
       user.sub,
       requestWithdrawalDto,
     );
+  }
+
+  @Post('transfer')
+  @HttpCode(HttpStatus.OK)
+  @Auth(AuthType.User)
+  @ApiBearerAuth()
+  @ResponseMessage('Transfer completed successfully')
+  @ApiOperation({ summary: 'Transfer funds to another user (User only)' })
+  @ApiResponse({
+    status: 200,
+    description: 'Transfer completed successfully',
+    schema: {
+      type: 'object',
+      properties: {
+        statusCode: { type: 'number', example: 200 },
+        message: { type: 'string', example: 'Transfer completed successfully' },
+        data: {
+          type: 'object',
+          properties: {
+            transactionId: { type: 'number', example: 456 },
+            amount: { type: 'number', example: 29.99 },
+            from: { type: 'string', example: 'sender_username' },
+            to: { type: 'string', example: 'devimmain' },
+            newBalance: { type: 'number', example: 470.01 },
+            reference: { type: 'string', example: 'transfer for fun' },
+          },
+        },
+      },
+    },
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'Bad request - insufficient balance, invalid amount, cannot transfer to self, or user not found',
+  })
+  @ApiResponse({
+    status: 401,
+    description: 'Unauthorized - invalid or missing token',
+  })
+  @ApiResponse({
+    status: 403,
+    description: 'Forbidden - User access required',
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'Receiver user not found',
+  })
+  async transfer(
+    @ActiveUser() user: ActiveUserData,
+    @Body() transferDto: TransferWalletDto,
+  ) {
+    return await this.walletService.transfer(user.sub, transferDto);
   }
 }

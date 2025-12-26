@@ -1,10 +1,6 @@
-import { Injectable } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { Payment } from '../payment.entity';
-import { User } from 'src/users/user.entity';
-import { GetUserPaymentsQueryDto } from '../dtos/get-user-payments-query.dto';
+import { Injectable, RequestTimeoutException } from '@nestjs/common';
 import { UserPaymentSummary } from '../interface/payment-user-summary.interface';
+import { GetUserPaymentsQueryDto } from '../dtos/get-user-payments-query.dto';
 import { PaymentQueryBuilderProvider } from './payment-query-builder.provider';
 import { PaymentMapperProvider } from './payment-mapper.provider';
 import { UserPaymentCounterProvider } from './user-payment-counter.provider';
@@ -12,69 +8,55 @@ import { UserPaymentCounterProvider } from './user-payment-counter.provider';
 @Injectable()
 export class FetchUserPaymentsProvider {
   constructor(
-    @InjectRepository(Payment)
-    private readonly paymentRepository: Repository<Payment>,
-
-    @InjectRepository(User)
-    private readonly userRepository: Repository<User>,
-
     private readonly queryBuilderProvider: PaymentQueryBuilderProvider,
-    private readonly statisticsProvider: UserPaymentCounterProvider,
     private readonly mapperProvider: PaymentMapperProvider,
+    private readonly statisticsProvider: UserPaymentCounterProvider,
   ) {}
 
   /**
    * Fetch user payments with statistics
+   * All comparisons use numbers (sellerId, buyerId, merchantId are all numbers)
    */
   async fetchUserPayments(
     userId: number,
     queryDto: GetUserPaymentsQueryDto,
   ): Promise<UserPaymentSummary> {
-    console.log('FetchUserPaymentsProvider: Fetching payments for user:', userId);
+    console.log('FetchUserPaymentsProvider: Getting payments for user ID:', userId);
+    console.log('Query params:', queryDto);
 
     try {
-      // Build base query
-      let query = this.queryBuilderProvider.buildUserPaymentsQuery(userId);
+      // Step 1: Build query with filters, sorting, and pagination
+      const queryBuilder = this.queryBuilderProvider.buildCompleteQuery(userId, queryDto);
 
-      // Apply filters
-      query = this.queryBuilderProvider.applyFilters(query, queryDto);
+      // Step 2: Execute query to get filtered payments
+      const payments = await queryBuilder.getMany();
+      console.log(`Found ${payments.length} payments for user ${userId}`);
 
-      // Get all matching payments for statistics calculation
-      const allPayments = await query.getMany();
-      console.log(`Found ${allPayments.length} total payments for user ${userId}`);
+      // Step 3: Calculate statistics using ALL user payments (not just filtered ones)
+      // We need all payments to calculate correct statistics
+      const allPaymentsQuery = this.queryBuilderProvider.buildUserPaymentsQuery(userId);
+      const allPayments = await allPaymentsQuery.getMany();
+      console.log(`Found ${allPayments.length} total payments for statistics`);
 
-      // Calculate statistics
-      const statistics = await this.statisticsProvider.calculateStatistics(
-        userId,
-        allPayments,
-      );
+      const statistics = await this.statisticsProvider.calculateStatistics(userId, allPayments);
 
-      // Apply sorting
-      query = this.queryBuilderProvider.applySorting(query, queryDto.sortOrder);
+      // Step 4: Map filtered payments to transaction format
+      const transactions = this.mapperProvider.mapPaymentsToTransactions(payments, userId);
 
-      // Apply pagination
-      const paginatedPayments = await this.queryBuilderProvider.applyPagination(
-        query,
-        queryDto.page,
-        queryDto.limit,
-      );
-
-      console.log(`Returning ${paginatedPayments.length} paginated payments`);
-
-      // Map to transactions
-      const transactions = this.mapperProvider.mapPaymentsToTransactions(
-        paginatedPayments,
-        userId,
-      );
-
-      return {
+      // Step 5: Return combined summary
+      const summary: UserPaymentSummary = {
         ...statistics,
         transactions,
       };
 
+      console.log('Returning payment summary with', transactions.length, 'transactions');
+      return summary;
+
     } catch (error) {
       console.error('Error fetching user payments:', error);
-      throw error;
+      throw new RequestTimeoutException(
+        'Unable to fetch payments at the moment. Please try again later.'
+      );
     }
   }
 }

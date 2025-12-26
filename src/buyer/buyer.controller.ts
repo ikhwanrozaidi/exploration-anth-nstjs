@@ -6,7 +6,7 @@ import {
   Ip,
   Post,
 } from '@nestjs/common';
-import { ApiBearerAuth, ApiOperation, ApiResponse } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { ActiveUser } from 'src/auth/decorators/active-user.decorator';
 import { Auth } from 'src/auth/decorators/auth.decorator';
 import { ActiveUserData } from 'src/auth/interfaces/active-user-data.interface';
@@ -15,6 +15,7 @@ import { AuthType } from 'src/common/enums/app.enums';
 import { BuyerService } from './buyer.service';
 import { BuyerCreateOrderDto } from './dtos/create-order.dto';
 
+@ApiTags('Buyer')
 @Controller('buyer')
 export class BuyerController {
   constructor(private readonly buyerService: BuyerService) {}

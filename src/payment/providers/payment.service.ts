@@ -1,15 +1,14 @@
-// src/payment/providers/payment.service.ts
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Payment } from '../payment.entity';
 import { User } from 'src/users/user.entity';
-import { UserPaymentResponse } from '../interface/payment-user.interface';
-import { CompletePaymentProvider } from './complete-payment.provider';
-import { GetUserPaymentsQueryDto } from '../dtos/get-user-payments-query.dto';
-import { UserPaymentSummary } from '../interface/payment-user-summary.interface';
-import { FetchUserPaymentsProvider } from './fetch-user-payments.provider';
 import { FetchMerchantPaymentsProvider } from './fetch-merchant-payments.provider';
+import { FetchUserPaymentsProvider } from './fetch-user-payments.provider';
+import { UserPaymentResponse } from '../interface/payment-user.interface';
+import { UserPaymentSummary } from '../interface/payment-user-summary.interface';
+import { GetUserPaymentsQueryDto } from '../dtos/get-user-payments-query.dto';
+import { CompletePaymentProvider } from './complete-payment.provider';
 
 @Injectable()
 export class PaymentService {
@@ -20,52 +19,18 @@ export class PaymentService {
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
 
-    private readonly completePaymentProvider: CompletePaymentProvider,
-    private readonly fetchUserPaymentsProvider: FetchUserPaymentsProvider,
     private readonly fetchMerchantPaymentsProvider: FetchMerchantPaymentsProvider,
+
+    private readonly fetchUserPaymentsProvider: FetchUserPaymentsProvider,
+
+    private readonly completePaymentProvider: CompletePaymentProvider,
   ) {}
 
   /**
    * Get merchant payments (for Admin users)
    */
   async getMerchantPayments(userId: number): Promise<UserPaymentResponse[]> {
-    console.log('PaymentService: Getting merchant payments for user ID:', userId);
-
-    try {
-      // Get user details to check merchant ID
-      const user = await this.userRepository.findOne({
-        where: { id: userId }
-      });
-
-      if (!user) {
-        throw new Error('User not found');
-      }
-
-      if (!user.merchantId) {
-        throw new Error('User is not associated with any merchant');
-      }
-
-      console.log('Getting merchant payments for merchantId:', user.merchantId);
-
-      // Get all payments for the merchant
-      const payments = await this.paymentRepository.find({
-        where: { merchantId: user.merchantId },
-        relations: ['paymentDetails', 'seller', 'buyer', 'provider'],
-        order: { createdAt: 'DESC' }
-      });
-
-      // Map payments to response format (all will be marked as 'merchant' role)
-      const paymentResponses = payments.map(payment => 
-        this.mapPaymentToResponse(payment, userId.toString(), user.merchantId)
-      );
-
-      console.log(`Found ${paymentResponses.length} merchant payments`);
-      return paymentResponses;
-
-    } catch (error) {
-      console.error('Error getting merchant payments:', error);
-      throw error;
-    }
+    return await this.fetchMerchantPaymentsProvider.fetchMerchantPayments(userId);
   }
 
   /**
@@ -76,66 +41,6 @@ export class PaymentService {
     queryDto: GetUserPaymentsQueryDto,
   ): Promise<UserPaymentSummary> {
     return await this.fetchUserPaymentsProvider.fetchUserPayments(userId, queryDto);
-  }
-  /**
-   * Map payment entity to response format with user role
-   */
-  private mapPaymentToResponse(
-    payment: Payment, 
-    userId: string, 
-    userMerchantId: number | null
-  ): UserPaymentResponse {
-    let userRole: 'buyer' | 'seller' | 'merchant';
-
-    if (userMerchantId && payment.merchantId === userMerchantId) {
-      userRole = 'merchant';
-    } else if (payment.buyerId === userId) {
-      userRole = 'buyer';
-    } else if (payment.sellerId === userId) {
-      userRole = 'seller';
-    } else {
-      userRole = 'buyer';
-    }
-
-    return {
-      paymentId: payment.paymentId,
-      paymentType: payment.paymentType,
-      sellerId: payment.sellerId,
-      buyerId: payment.buyerId,
-      merchantId: payment.merchantId,
-      amount: Number(payment.amount),
-      isRequest: payment.isRequest,
-      status: payment.status,
-      providerId: payment.providerId,
-      createdAt: payment.createdAt,
-      updatedAt: payment.updatedAt,
-      ipAddress: payment.ipAddress,
-      userRole,
-      paymentDetails: payment.paymentDetails ? {
-        signature: payment.paymentDetails.signature,
-        productName: payment.paymentDetails.productName,
-        productDesc: payment.paymentDetails.productDesc,
-        productCat: payment.paymentDetails.productCat,
-        amount: Number(payment.paymentDetails.amount),
-        buyerName: payment.paymentDetails.buyerName,
-        buyerEmail: payment.paymentDetails.buyerEmail,
-        buyerPhone: payment.paymentDetails.buyerPhone,
-        refundable: payment.paymentDetails.refundable,
-      } : null,
-      seller: payment.seller ? {
-        id: payment.seller.id,
-        email: payment.seller.email,
-      } : null,
-      buyer: payment.buyer ? {
-        id: payment.buyer.id,
-        email: payment.buyer.email,
-      } : null,
-      provider: payment.provider ? {
-        providerId: payment.provider.providerId,
-        name: payment.provider.name,
-        publicKey: payment.provider.publicKey,
-      } : null,
-    };
   }
 
   /**
@@ -151,5 +56,28 @@ export class PaymentService {
       paymentId,
       proofImages,
     );
+  }
+
+  /**
+   * Mark payment as complete (for testing/admin purposes)
+   * All comparisons use numbers (sellerId, buyerId, merchantId are all numbers)
+   */
+  async markPaymentComplete(userId: number, paymentId: string): Promise<Payment> {
+    const payment = await this.paymentRepository.findOne({
+      where: { paymentId },
+      relations: ['seller', 'buyer'],
+    });
+
+    if (!payment) {
+      throw new NotFoundException('Payment not found');
+    }
+
+    // Only seller can mark as complete
+    if (payment.sellerId !== userId && payment.merchantId !== userId) {
+      throw new ForbiddenException('Only seller can mark payment as completed');
+    }
+
+    payment.isCompleted = true;
+    return await this.paymentRepository.save(payment);
   }
 }

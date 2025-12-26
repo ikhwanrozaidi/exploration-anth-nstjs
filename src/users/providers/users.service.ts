@@ -19,6 +19,8 @@ import { SetUsernameProvider } from './set-username.provider';
 import { ChangeUsernameProvider } from './change-username.provider';
 import { SetUsernameDto } from '../dtos/set-username.dto';
 import { ChangeUsernameDto } from '../dtos/change-username.dto';
+import { SearchUserProvider } from './search-user.provider';
+import { SearchUserDto } from '../dtos/search-user.dto';
 
 /**
  * Controller class for '/users' API endpoint
@@ -44,6 +46,8 @@ export class UsersService {
     private readonly setUsernameProvider: SetUsernameProvider,
 
     private readonly changeUsernameProvider: ChangeUsernameProvider,
+
+    private readonly searchUserProvider: SearchUserProvider,
   ) {}
 
   /**
@@ -107,5 +111,9 @@ export class UsersService {
       userId,
       changeUsernameDto,
     );
+  }
+
+   public async searchUser(searchUserDto: SearchUserDto) {
+    return await this.searchUserProvider.searchUser(searchUserDto);
   }
 }

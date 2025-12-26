@@ -1,7 +1,12 @@
 // src/outside/providers/payment-mapping.provider.ts
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { PaymentStatus, PaymentType, UserRole, UserStatus } from 'src/common/enums/app.enums';
+import {
+  PaymentStatus,
+  PaymentType,
+  UserRole,
+  UserStatus,
+} from 'src/common/enums/app.enums';
 import { BerryPayCallbackDto } from 'src/outside/dtos/berrypay-callback.dto';
 import { PaymentSession } from 'src/outside/entity/payment-session.entity';
 import { PaymentProvider } from 'src/payment-provider/payment-provider.entity';
@@ -27,7 +32,7 @@ export class BerrypayPaymentMappingProvider {
   async createPaymentFromSession(
     paymentSession: PaymentSession,
     provider: PaymentProvider,
-    callbackData: BerryPayCallbackDto
+    callbackData: BerryPayCallbackDto,
   ): Promise<Payment> {
     console.log('PaymentMappingProvider: Creating payment from session');
     console.log('Session ID:', paymentSession.id);
@@ -42,7 +47,7 @@ export class BerrypayPaymentMappingProvider {
       const senderUser = await this.findOrCreateUserByEmail(
         callbackData.txn_buyer_email,
         callbackData.txn_buyer_phone,
-        callbackData.txn_buyer_name
+        callbackData.txn_buyer_name,
       );
 
       // Create Payment entity
@@ -51,7 +56,7 @@ export class BerrypayPaymentMappingProvider {
         provider,
         senderUser,
         paymentPayload,
-        callbackData
+        callbackData,
       );
 
       // Create PaymentDetails entity
@@ -61,7 +66,6 @@ export class BerrypayPaymentMappingProvider {
       console.log('Payment ID:', payment.paymentId);
 
       return payment;
-
     } catch (error) {
       console.error('Error creating payment from session:', error);
       throw error;
@@ -71,11 +75,15 @@ export class BerrypayPaymentMappingProvider {
   /**
    * Find user by email or create if not exists
    */
-  private async findOrCreateUserByEmail(email: string, phone?: string, name?: string): Promise<User> {
+  private async findOrCreateUserByEmail(
+    email: string,
+    phone?: string,
+    name?: string,
+  ): Promise<User> {
     console.log('Finding or creating user for email:', email);
-    
+
     let user = await this.userRepository.findOne({
-      where: { email }
+      where: { email },
     });
 
     if (user) {
@@ -85,11 +93,11 @@ export class BerrypayPaymentMappingProvider {
 
     // User doesn't exist, create new one
     console.log('User not found, creating new user for email:', email);
-    
+
     try {
       // Generate next ID for user
       const nextUserId = await this.generateNextUserIdForCallback();
-      
+
       const newUser = this.userRepository.create({
         id: nextUserId,
         email: email,
@@ -101,7 +109,7 @@ export class BerrypayPaymentMappingProvider {
 
       const savedUser = await this.userRepository.save(newUser);
       console.log('Created new user ID:', savedUser.id, 'for email:', email);
-      
+
       return savedUser;
     } catch (error) {
       console.error('Error creating user:', error);
@@ -119,14 +127,23 @@ export class BerrypayPaymentMappingProvider {
         .createQueryBuilder('user')
         .select('MAX(user.id)', 'maxId')
         .where('user.id < :threshold', { threshold: 100000 })
-        .andWhere('user.id NOT BETWEEN :start1 AND :end1', { start1: 140000, end1: 149999 })
-        .andWhere('user.id NOT BETWEEN :start2 AND :end2', { start2: 150000, end2: 159999 })
-        .andWhere('user.id NOT BETWEEN :start3 AND :end3', { start3: 440000, end3: 449999 })
+        .andWhere('user.id NOT BETWEEN :start1 AND :end1', {
+          start1: 140000,
+          end1: 149999,
+        })
+        .andWhere('user.id NOT BETWEEN :start2 AND :end2', {
+          start2: 150000,
+          end2: 159999,
+        })
+        .andWhere('user.id NOT BETWEEN :start3 AND :end3', {
+          start3: 440000,
+          end3: 449999,
+        })
         .getRawOne();
 
       const maxId = result?.maxId;
       const nextId = (maxId || 0) + 1;
-      
+
       console.log('Generated user ID for callback:', nextId);
       return nextId;
     } catch (error) {
@@ -143,7 +160,7 @@ export class BerrypayPaymentMappingProvider {
     provider: PaymentProvider,
     senderUser: User,
     paymentPayload: any,
-    callbackData: BerryPayCallbackDto
+    callbackData: BerryPayCallbackDto,
   ): Promise<Payment> {
     console.log('Creating Payment entity');
 
@@ -170,7 +187,7 @@ export class BerrypayPaymentMappingProvider {
    */
   private async createPaymentDetailsEntity(
     payment: Payment,
-    paymentPayload: any
+    paymentPayload: any,
   ): Promise<PaymentDetails> {
     console.log('Creating PaymentDetails entity');
 
@@ -179,6 +196,13 @@ export class BerrypayPaymentMappingProvider {
       signature: paymentPayload.signature,
       productName: paymentPayload.productName,
       productDesc: paymentPayload.productDesc || null,
+      // ===== Should the productDesc be an array? because just changed to json array
+      //
+      // productDesc: paymentPayload.productDesc
+      //   ? [paymentPayload.productDesc]
+      //   : null,
+      //
+      // =====
       productCat: paymentPayload.productCat || null,
       amount: parseFloat(paymentPayload.productAmount),
       buyerName: paymentPayload.buyerName,
@@ -187,8 +211,12 @@ export class BerrypayPaymentMappingProvider {
       refundable: paymentPayload.isRefundable || false,
     });
 
-    const savedPaymentDetails = await this.paymentDetailsRepository.save(paymentDetails);
-    console.log('PaymentDetails entity created for payment ID:', savedPaymentDetails.paymentId);
+    const savedPaymentDetails =
+      await this.paymentDetailsRepository.save(paymentDetails);
+    console.log(
+      'PaymentDetails entity created for payment ID:',
+      savedPaymentDetails.paymentId,
+    );
 
     return savedPaymentDetails;
   }
@@ -198,20 +226,28 @@ export class BerrypayPaymentMappingProvider {
    */
   async checkIfPaymentExists(paymentSession: PaymentSession): Promise<boolean> {
     const paymentPayload = JSON.parse(paymentSession.paymentPayload);
-    
+
     // Check if payment already exists based on order ID and merchant ID
     const existingPayment = await this.paymentRepository
       .createQueryBuilder('payment')
       .innerJoin('payment.paymentDetails', 'details')
-      .where('payment.merchantId = :merchantId', { merchantId: paymentSession.merchantId })
-      .andWhere('details.productName = :productName', { productName: paymentPayload.productName })
-      .andWhere('details.buyerEmail = :buyerEmail', { buyerEmail: paymentPayload.buyerAccount })
-      .andWhere('details.amount = :amount', { amount: paymentPayload.productAmount })
+      .where('payment.merchantId = :merchantId', {
+        merchantId: paymentSession.merchantId,
+      })
+      .andWhere('details.productName = :productName', {
+        productName: paymentPayload.productName,
+      })
+      .andWhere('details.buyerEmail = :buyerEmail', {
+        buyerEmail: paymentPayload.buyerAccount,
+      })
+      .andWhere('details.amount = :amount', {
+        amount: paymentPayload.productAmount,
+      })
       .getOne();
 
     const exists = !!existingPayment;
     console.log('Payment exists check:', exists);
-    
+
     return exists;
   }
 }

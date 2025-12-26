@@ -20,6 +20,7 @@ export class UserPaymentCounterProvider {
 
   /**
    * Calculate payment statistics for a user
+   * All comparisons use numbers (sellerId, buyerId, merchantId are all numbers)
    */
   async calculateStatistics(
     userId: number,
@@ -28,16 +29,13 @@ export class UserPaymentCounterProvider {
     console.log('UserPaymentCounterProvider: Calculating statistics for user:', userId);
     console.log('Total payments received:', payments.length);
 
-    // ✅ No need to convert to string anymore - compare numbers directly
-
     // 1. Count ALL completed orders (regardless of buyer/seller role)
     const completeOrder = payments.filter(p => p.isCompleted).length;
     console.log('Complete orders:', completeOrder);
 
     // 2. User is SELLER (sellerId or merchantId matches userId)
     const sellerPayments = payments.filter(p => 
-      p.sellerId === userId ||  // ✅ Number comparison
-      p.merchantId === userId   // ✅ Number comparison
+      p.sellerId === userId || p.merchantId === userId
     );
     console.log('Seller payments count:', sellerPayments.length);
 
@@ -55,9 +53,7 @@ export class UserPaymentCounterProvider {
     console.log('Seller complete payments:', sellerCompletePayments.length, '- Amount:', completeReceive);
 
     // 3. User is BUYER (buyerId matches userId)
-    const buyerPayments = payments.filter(p => 
-      p.buyerId === userId  // ✅ Number comparison
-    );
+    const buyerPayments = payments.filter(p => p.buyerId === userId);
     console.log('Buyer payments count:', buyerPayments.length);
 
     // Calculate amounts for BUYER role
