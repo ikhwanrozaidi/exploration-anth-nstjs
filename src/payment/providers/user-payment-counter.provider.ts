@@ -34,9 +34,9 @@ export class UserPaymentCounterProvider {
     console.log('Complete orders:', completeOrder);
 
     // 2. User is SELLER (sellerId or merchantId matches userId)
-    const sellerPayments = payments.filter(p => 
-      p.sellerId === userId || p.merchantId === userId
-    );
+const sellerPayments = payments.filter(p => 
+  p.paymentType === 'p2p' && p.sellerId === userId
+);
     console.log('Seller payments count:', sellerPayments.length);
 
     // Calculate amounts for SELLER role

@@ -2,14 +2,14 @@ POST http://localhost:3003/auth/sign-in
 Content-Type: application/json
 
 /// LOCAL DB REQUEST
-{
-  "email": "testuser2@gatepay.dev",
-  "password": "Password123#"
-}
-
-/// SERVER DB REQUEST
 // {
-//   "email": "devimmain@gmail.com",
+//   "email": "testuser2@gatepay.dev",
 //   "password": "Password123#"
 // }
+
+/// SERVER DB REQUEST
+{
+  "email": "devimmain@gmail.com",
+  "password": "Password123#"
+}
 
