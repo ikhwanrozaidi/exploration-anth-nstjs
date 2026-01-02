@@ -1,9 +1,17 @@
-import { IsOptional, IsInt, Min, IsEnum, IsDateString, IsIn } from 'class-validator';
+import { IsOptional, IsInt, Min, IsEnum, IsDateString, IsIn, IsUUID } from 'class-validator';
 import { Transform } from 'class-transformer';
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import { PaymentStatus, PaymentType } from 'src/common/enums/app.enums';
 
 export class GetUserPaymentsQueryDto {
+  @ApiPropertyOptional({
+    description: 'Filter by specific payment ID',
+    example: '123e4567-e89b-12d3-a456-426614174000',
+  })
+  @IsOptional()
+  @IsUUID('4')
+  paymentId?: string;
+
   @ApiPropertyOptional({ default: 1, description: 'Page number' })
   @IsOptional()
   @Transform(({ value }) => parseInt(value))

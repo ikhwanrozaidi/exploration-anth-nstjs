@@ -16,6 +16,7 @@ import { PaymentQueryBuilderProvider } from './providers/payment-query-builder.p
 import { PaymentMapperProvider } from './providers/payment-mapper.provider';
 import { UserPaymentCounterProvider } from './providers/user-payment-counter.provider';
 import { Wallet } from 'src/wallet/entity/wallet.entity';
+import p2pConfig from './config/p2p.config';
 
 @Module({
   controllers: [PaymentController],
@@ -37,6 +38,7 @@ import { Wallet } from 'src/wallet/entity/wallet.entity';
       Wallet,
     ]),
     ConfigModule.forFeature(spacesDoConfig),
+    ConfigModule.forFeature(p2pConfig),
   ],
 })
 export class PaymentModule {}

@@ -60,45 +60,74 @@ export class PaymentController {
     return await this.paymentService.getMerchantPayments(user.sub);
   }
 
-  @Get('users')
-  @HttpCode(HttpStatus.OK)
-  @Auth(AuthType.User)
-  @ApiBearerAuth()
-  @ApiOperation({ summary: 'Get personal payments with statistics (User only)' })
-  @ApiResponse({ 
-    status: 200, 
-    description: 'Personal payments with summary statistics',
-    schema: {
-      type: 'object',
-      properties: {
-        statusCode: { type: 'number', example: 200 },
-        message: { type: 'string', example: 'Request successful' },
-        data: {
-          type: 'object',
-          properties: {
-            completeOrder: { type: 'number', example: 10 },
-            waitReceiveAmount: { type: 'number', example: 12.10 },
-            completeReceive: { type: 'number', example: 12.10 },
-            waitReleaseAmount: { type: 'number', example: 123.10 },
-            completeRelease: { type: 'number', example: 20.10 },
-            transactions: {
-              type: 'array',
-              items: {
-                type: 'object',
-                properties: {
-                  paymentId: { type: 'string' },
-                  paymentType: { type: 'string' },
-                  sellerId: { type: 'number', nullable: true },
-                  buyerId: { type: 'number' },
-                  merchantId: { type: 'number', nullable: true },
-                  amount: { type: 'number' },
-                  providerId: { type: 'string' },
-                  createdAt: { type: 'string' },
-                  updatedAt: { type: 'string' },
-                  userRole: { type: 'string', enum: ['buyer', 'seller'] },
-                  paymentDetails: { type: 'object' },
-                  seller: { type: 'object', nullable: true },
-                  buyer: { type: 'object' }
+@Get('users')
+@HttpCode(HttpStatus.OK)
+@Auth(AuthType.User)
+@ApiBearerAuth()
+@ApiOperation({ summary: 'Get personal payments with statistics (User only)' })
+@ApiResponse({ 
+  status: 200, 
+  description: 'Personal payments with summary statistics',
+  schema: {
+    type: 'object',
+    properties: {
+      statusCode: { type: 'number', example: 200 },
+      message: { type: 'string', example: 'Request successful' },
+      data: {
+        type: 'object',
+        properties: {
+          completeOrder: { type: 'number', example: 10 },
+          waitReceiveAmount: { type: 'number', example: 12.10 },
+          completeReceive: { type: 'number', example: 12.10 },
+          waitReleaseAmount: { type: 'number', example: 123.10 },
+          completeRelease: { type: 'number', example: 123.10 },
+          transactions: {
+            type: 'array',
+            items: {
+              type: 'object',
+              properties: {
+                paymentId: { type: 'string', example: 'uuid' },
+                paymentType: { type: 'string', example: 'p2p' },
+                sellerId: { type: 'number', example: 1, nullable: true },
+                buyerId: { type: 'number', example: 1 },
+                merchantId: { type: 'number', example: 1, nullable: true },
+                amount: { type: 'number', example: 29.99 },
+                providerId: { type: 'string', example: 'uuid' },
+                isCompleted: { type: 'boolean', example: false },
+                createdAt: { type: 'string', example: '2025-01-01T00:00:00Z' },
+                updatedAt: { type: 'string', example: '2025-01-01T00:00:00Z' },
+                userRole: { type: 'string', example: 'buyer' },
+                paymentDetails: {
+                  type: 'object',
+                  properties: {
+                    productName: { type: 'string', example: 'Product Name' },
+                    productDesc: { type: 'array', items: { type: 'string' } },
+                    productCat: { type: 'string', example: 'digital_services' },
+                    amount: { type: 'number', example: 29.99 },
+                    refundable: { type: 'boolean', example: true },
+                    deliveryStatus: { 
+                      type: 'string', 
+                      enum: ['preparing', 'shipping', 'delivered', 'issue'],
+                      example: 'preparing'
+                    }, 
+                  }
+                },
+                seller: { 
+                  type: 'object',
+                  nullable: true,
+                  properties: {
+                    id: { type: 'number', example: 1 },
+                    email: { type: 'string', example: 'seller@example.com' },
+                    username: { type: 'string', example: 'seller123' }
+                  }
+                },
+                buyer: { 
+                  type: 'object',
+                  properties: {
+                    id: { type: 'number', example: 1 },
+                    email: { type: 'string', example: 'buyer@example.com' },
+                    username: { type: 'string', example: 'buyer123' }
+                  }
                 }
               }
             }
@@ -106,7 +135,8 @@ export class PaymentController {
         }
       }
     }
-  })
+  }
+})
   async getPersonalPayments(
     @ActiveUser() user: ActiveUserData,
     @Query() queryDto: GetUserPaymentsQueryDto,

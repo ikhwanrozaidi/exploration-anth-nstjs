@@ -131,6 +131,7 @@ export class CompletePaymentProvider {
         status: WalletStatus.SUCCESS,
         oppositeId: payment.buyerId,
         reference: `ORDER_COMPLETE_${payment.paymentId}`,
+        paymentId: payment.paymentId,
       });
 
       await queryRunner.manager.save(walletRecord);

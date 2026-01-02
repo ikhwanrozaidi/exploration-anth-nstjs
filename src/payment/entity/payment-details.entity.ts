@@ -1,3 +1,4 @@
+import { DeliveryStatus } from 'src/common/enums/app.enums';
 import { Payment } from '../payment.entity';
 import { Entity, PrimaryColumn, Column, OneToOne, JoinColumn } from 'typeorm';
 
@@ -54,6 +55,14 @@ export class PaymentDetails {
     nullable: true 
   })
   refundable: boolean;
+
+  @Column({
+    nullable: true,
+    type: 'enum',
+    enum: DeliveryStatus,
+    default: DeliveryStatus.PREPARING,
+  })
+  deliveryStatus: DeliveryStatus;
 
   @OneToOne(() => Payment, payment => payment.paymentDetails)
   @JoinColumn({ name: 'paymentId' })

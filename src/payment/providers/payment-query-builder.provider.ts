@@ -34,6 +34,14 @@ export class PaymentQueryBuilderProvider {
     queryBuilder: SelectQueryBuilder<Payment>,
     queryDto: GetUserPaymentsQueryDto,
   ): SelectQueryBuilder<Payment> {
+
+    // Filter by paymentId
+    if (queryDto.paymentId) {
+      queryBuilder.andWhere('payment.paymentId = :paymentId', { 
+        paymentId: queryDto.paymentId 
+      });
+    }
+
     // Filter by date range
     if (queryDto.fromDate) {
       queryBuilder.andWhere('payment.createdAt >= :fromDate', {

@@ -1,3 +1,6 @@
+import { DeliveryStatus } from "src/common/enums/app.enums";
+
+
 export interface UserPaymentSummary {
   completeOrder: number;
   waitReceiveAmount: number;
@@ -15,6 +18,7 @@ export interface UserPaymentTransaction {
   merchantId: number | null;
   amount: number;
   providerId: string;
+  isCompleted: boolean;
   createdAt: Date;
   updatedAt: Date;
   userRole: 'buyer' | 'seller';
@@ -24,13 +28,16 @@ export interface UserPaymentTransaction {
     productCat: string;
     amount: number;
     refundable: boolean;
+    deliveryStatus: DeliveryStatus;
   };
   seller: {
     id: number;
     email: string;
+    username: string;
   } | null;
   buyer: {
     id: number;
     email: string;
+    username: string;
   };
 }

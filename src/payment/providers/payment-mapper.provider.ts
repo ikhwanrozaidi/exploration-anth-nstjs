@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { Payment } from '../payment.entity';
 import { UserPaymentTransaction } from '../interface/payment-user-summary.interface';
+import { DeliveryStatus } from 'src/common/enums/app.enums';
 
 @Injectable()
 export class PaymentMapperProvider {
@@ -31,6 +32,7 @@ export class PaymentMapperProvider {
       merchantId: payment.merchantId,
       amount: Number(payment.amount),
       providerId: payment.providerId,
+      isCompleted: payment.isCompleted,
       createdAt: payment.createdAt,
       updatedAt: payment.updatedAt,
       userRole,
@@ -40,14 +42,17 @@ export class PaymentMapperProvider {
         productCat: payment.paymentDetails.productCat,
         amount: Number(payment.paymentDetails.amount),
         refundable: payment.paymentDetails.refundable,
+        deliveryStatus: payment.paymentDetails?.deliveryStatus || DeliveryStatus.PREPARING,
       } : null,
       seller: payment.seller ? {
         id: payment.seller.id,
         email: payment.seller.email,
+        username: payment.seller.username,
       } : null,
       buyer: payment.buyer ? {
         id: payment.buyer.id,
         email: payment.buyer.email,
+        username: payment.buyer.username,
       } : null,
     };
   }

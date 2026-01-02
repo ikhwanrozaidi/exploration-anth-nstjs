@@ -1,4 +1,4 @@
-import { Injectable, RequestTimeoutException } from '@nestjs/common';
+import { Injectable, NotFoundException, RequestTimeoutException } from '@nestjs/common';
 import { UserPaymentSummary } from '../interface/payment-user-summary.interface';
 import { GetUserPaymentsQueryDto } from '../dtos/get-user-payments-query.dto';
 import { PaymentQueryBuilderProvider } from './payment-query-builder.provider';
@@ -31,6 +31,12 @@ export class FetchUserPaymentsProvider {
       // Step 2: Execute query to get filtered payments
       const payments = await queryBuilder.getMany();
       console.log(`Found ${payments.length} payments for user ${userId}`);
+
+      if (queryDto.paymentId && payments.length === 0) {
+        throw new NotFoundException(
+          `Payment with ID ${queryDto.paymentId} not found or you don't have access to it`
+        );
+      }
 
       // Step 3: Calculate statistics using ALL user payments (not just filtered ones)
       // We need all payments to calculate correct statistics
