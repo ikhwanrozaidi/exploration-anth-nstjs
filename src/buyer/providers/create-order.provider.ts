@@ -5,6 +5,7 @@ import {
   BadRequestException,
   NotFoundException,
   RequestTimeoutException,
+  Inject,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { DataSource, Repository } from 'typeorm';
@@ -18,10 +19,9 @@ import {
 import { BuyerCreateOrderDto } from '../dtos/create-order.dto';
 import { Payment } from 'src/payment/payment.entity';
 import { PaymentDetails } from 'src/payment/entity/payment-details.entity';
-import {
-  P2P_PERCENTAGE_FEES,
-  P2P_PROVIDER_ID,
-} from 'src/payment/constant/payment.constant';
+import { CreateOrderResponse } from '../interfaces/create-order-response.interface';
+import p2pConfig from 'src/payment/config/p2p.config';
+import { ConfigType } from '@nestjs/config';
 
 @Injectable()
 export class CreateOrderProvider {
@@ -39,13 +39,16 @@ export class CreateOrderProvider {
     private readonly accountAuditRepository: Repository<AccountAudit>,
 
     private readonly dataSource: DataSource,
+
+    @Inject(p2pConfig.KEY)
+    private readonly p2pConfiguration: ConfigType<typeof p2pConfig>,
   ) {}
 
   async createOrder(
     buyerId: number,
     createOrderDto: BuyerCreateOrderDto,
     ipAddress?: string,
-  ): Promise<Payment> {
+  ): Promise<CreateOrderResponse> {
     console.log('CreateOrderProvider: Starting P2P payment creation');
     console.log('Buyer ID:', buyerId);
     console.log('Seller Username:', createOrderDto.sellerUsername);
@@ -55,8 +58,8 @@ export class CreateOrderProvider {
     const amount = parseFloat(createOrderDto.amount);
 
     // Calculate fee
-    const feeAmount = amount * P2P_PERCENTAGE_FEES;
-    console.log('Transaction fee (2%):', feeAmount);
+    const feeAmount = amount * this.p2pConfiguration.percentageFees;
+    console.log(`Transaction fee (${this.p2pConfiguration.percentageFees * 100}%):`, feeAmount);
 
     // Step 1: Find sender
     const buyer = await this.userRepository.findOne({
@@ -75,6 +78,10 @@ export class CreateOrderProvider {
 
     if (!seller) {
       throw new BadRequestException('Seller username not found');
+    }
+
+    if (seller.id === buyerId) {
+      throw new BadRequestException('You cannot create a payment to yourself');
     }
 
     console.log('Seller found:', seller.email);
@@ -125,7 +132,7 @@ export class CreateOrderProvider {
         status: PaymentStatus.SUCCESS,
         merchantOrderId: null,
         isCompleted: false,
-        providerId: P2P_PROVIDER_ID,
+        providerId: this.p2pConfiguration.providerId,
         ipAddress: ipAddress || null,
       });
 
@@ -160,7 +167,7 @@ export class CreateOrderProvider {
       // 5d. Create AccountAudit record (Gatepay profit tracking)
       const accountAudit = queryRunner.manager.create(AccountAudit, {
         paymentId: savedPayment.paymentId,
-        percentage: P2P_PERCENTAGE_FEES,
+        percentage: this.p2pConfiguration.percentageFees,
         amount: feeAmount,
         balance: newGatepayBalance,
         direction: WalletDirection.IN,
@@ -179,7 +186,8 @@ export class CreateOrderProvider {
         relations: ['paymentDetails', 'buyer', 'seller', 'provider'],
       });
 
-      return result;
+      return this.mapToCleanResponse(result);
+
     } catch (error) {
       // Rollback transaction on error
       await queryRunner.rollbackTransaction();
@@ -195,5 +203,66 @@ export class CreateOrderProvider {
       // Release query runner
       await queryRunner.release();
     }
+  }
+
+  /**
+   * Map Payment entity to clean response format
+   * Removes sensitive data (passwords, provider details)
+   * Removes null fields
+   */
+  private mapToCleanResponse(payment: Payment): CreateOrderResponse {
+    const response: CreateOrderResponse = {
+      paymentId: payment.paymentId,
+      paymentType: payment.paymentType,
+      sellerId: payment.sellerId,
+      buyerId: payment.buyerId,
+      amount: Number(payment.amount),
+      isRequest: payment.isRequest,
+      status: payment.status,
+      isCompleted: payment.isCompleted,
+      paymentDetails: {
+        productName: payment.paymentDetails.productName,
+        productDesc: payment.paymentDetails.productDesc,
+        productCat: payment.paymentDetails.productCat,
+        amount: Number(payment.paymentDetails.amount),
+        refundable: payment.paymentDetails.refundable,
+        deliveryStatus: payment.paymentDetails.deliveryStatus,
+      },
+      buyer: {
+        id: payment.buyer.id,
+        email: payment.buyer.email,
+        username: payment.buyer.username,
+      },
+      seller: {
+        id: payment.seller.id,
+        email: payment.seller.email,
+        username: payment.seller.username,
+      },
+    };
+
+    // ✅ Only add merchantId if not null
+    if (payment.merchantId !== null) {
+      response.merchantId = payment.merchantId;
+    }
+
+    // ✅ Only add merchantOrderId if not null
+    if (payment.merchantOrderId !== null) {
+      response.merchantOrderId = payment.merchantOrderId;
+    }
+
+    // ✅ Only add optional paymentDetails fields if not null
+    if (payment.paymentDetails.buyerName !== null) {
+      response.paymentDetails.buyerName = payment.paymentDetails.buyerName;
+    }
+
+    if (payment.paymentDetails.buyerEmail !== null) {
+      response.paymentDetails.buyerEmail = payment.paymentDetails.buyerEmail;
+    }
+
+    if (payment.paymentDetails.buyerPhone !== null) {
+      response.paymentDetails.buyerPhone = payment.paymentDetails.buyerPhone;
+    }
+
+    return response;
   }
 }

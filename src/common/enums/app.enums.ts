@@ -169,3 +169,23 @@ export enum WithdrawalStatus {
   COMPLETE = 'complete',
   FAIL = 'fail',
 }
+
+/**
+ * Delivery Status enumeration
+ */
+export enum DeliveryStatus {
+  PREPARING = 'preparing',
+  SHIPPING = 'shipping',
+  DELIVERED = 'delivered',
+  ISSUE = 'issue',
+}
+
+/**
+ * Verification Status enumeration
+ */
+export enum VerifyStatus {
+  PENDING = 'pending',
+  VERIFIED = 'verified',
+  FAILED = 'failed',
+  UNVERIFIED = 'unverified',
+}

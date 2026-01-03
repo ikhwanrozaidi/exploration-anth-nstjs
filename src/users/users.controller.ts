@@ -112,7 +112,7 @@ export class UsersController {
     await this.usersService.searchUser(searchUserDto);
 
     return {
-      statusCode: 200,
+      // statusCode: 200,
       message: 'User found',
     };
   }

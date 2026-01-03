@@ -1,14 +1,14 @@
 POST http://localhost:3003/auth/verify-otp
 Content-Type: application/json
 
-// {
-//   "email": "testuser2@gatepay.dev",
-//   "otp": "000000"
-// }
+{
+  "email": "testuser2@gatepay.dev",
+  "otp": "000000"
+}
 
 
 /// SERVER DB REQUEST
-{
-  "email": "devimmain@gmail.com",
-  "otp": "000000"
-}
+//  {
+//    "email": "devimmain@gmail.com",
+//    "otp": "000000"
+//  }

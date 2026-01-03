@@ -1,6 +1,6 @@
 import { Entity, PrimaryColumn, Column, OneToOne, JoinColumn, DeleteDateColumn } from 'typeorm';
 import { User } from '../user.entity';
-import { TierType } from 'src/common/enums/app.enums';
+import { TierType, VerifyStatus } from 'src/common/enums/app.enums';
 
 @Entity('user_detail')
 export class UserDetail {
@@ -28,8 +28,12 @@ export class UserDetail {
   @Column({ type: 'int', default: 0 })
   gatePoint: number;
 
-  @Column({ default: false })
-  verify: boolean;
+  @Column({
+    type: 'enum',
+    enum: VerifyStatus,
+    default: VerifyStatus.UNVERIFIED
+  })
+  verify: VerifyStatus;
 
   @Column({ nullable: true })
   vaccount: string;

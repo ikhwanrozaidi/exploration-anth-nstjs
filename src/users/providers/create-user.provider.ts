@@ -11,6 +11,7 @@ import { CreateUserDto } from '../dtos/create-user.dto';
 import { HashingProvider } from 'src/auth/providers/hashing.provider';
 import { IdGenerationProvider } from './id-generation.provider';
 import { User } from '../user.entity';
+import { VerifyStatus } from 'src/common/enums/app.enums';
 
 @Injectable()
 export class CreateUserProvider {

@@ -14,6 +14,7 @@ import { ResponseMessage } from 'src/common/decorators/response-message.decorato
 import { AuthType } from 'src/common/enums/app.enums';
 import { BuyerService } from './buyer.service';
 import { BuyerCreateOrderDto } from './dtos/create-order.dto';
+import { CreateOrderResponse } from './interfaces/create-order-response.interface';
 
 @ApiTags('Buyer')
 @Controller('buyer')
@@ -85,7 +86,7 @@ export class BuyerController {
     @ActiveUser() user: ActiveUserData,
     @Body() createOrderDto: BuyerCreateOrderDto,
     @Ip() ipAddress: string,
-  ) {
+  ): Promise<CreateOrderResponse> {
     return await this.buyerService.createOrder(
       user.sub,
       createOrderDto,

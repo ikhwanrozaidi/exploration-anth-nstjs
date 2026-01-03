@@ -2,6 +2,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import {
+  DeliveryStatus,
   PaymentStatus,
   PaymentType,
   UserRole,
@@ -209,6 +210,11 @@ export class BerrypayPaymentMappingProvider {
       buyerEmail: paymentPayload.buyerAccount,
       buyerPhone: paymentPayload.buyerPhone?.toString() || null,
       refundable: paymentPayload.isRefundable || false,
+      // ===== Just added this. Consider to set status to preparing after the status of payment success
+      //
+      // deliveryStatus: DeliveryStatus.PREPARING,
+      //
+      // =====
     });
 
     const savedPaymentDetails =

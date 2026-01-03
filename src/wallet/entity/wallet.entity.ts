@@ -1,4 +1,5 @@
 import { WalletDirection, WalletSource, WalletStatus } from 'src/common/enums/app.enums';
+import { Payment } from 'src/payment/payment.entity';
 import { User } from 'src/users/user.entity';
 import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn, CreateDateColumn, UpdateDateColumn } from 'typeorm';
 
@@ -33,6 +34,9 @@ export class Wallet {
   })
   source: WalletSource;
 
+  @Column({ type: 'uuid', nullable: true })
+  paymentId: string;
+
   @Column({
     type: 'enum',
     enum: WalletStatus,
@@ -63,4 +67,8 @@ export class Wallet {
   @ManyToOne(() => User)
   @JoinColumn({ name: 'userId' })
   user: User;
+
+  @ManyToOne(() => Payment, { nullable: true, onDelete: 'SET NULL' })
+  @JoinColumn({ name: 'paymentId' })
+  payment: Payment;
 }

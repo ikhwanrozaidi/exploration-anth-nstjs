@@ -1,11 +1,11 @@
 POST http://localhost:3003/buyer/create-order
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjMsImVtYWlsIjoidGVzdHVzZXIzQGdhdGVwYXkuZGV2IiwiaWF0IjoxNzY2NjM5MDE0LCJleHAiOjE3NjY2NDI2MTQsImF1ZCI6ImxvY2FsaG9zdDozMDAzIiwiaXNzIjoibG9jYWxob3N0OjMwMDMifQ.wo6wdEDW-a3e-awuMcbSj6kcSrwvyM8tuoEloF5nmOA
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjIsImVtYWlsIjoidGVzdHVzZXIyQGdhdGVwYXkuZGV2IiwiaWF0IjoxNzY3MzQ0ODc5LCJleHAiOjE3NjczNDg0NzksImF1ZCI6ImxvY2FsaG9zdDozMDAzIiwiaXNzIjoibG9jYWxob3N0OjMwMDMifQ.8JLWYMV009kc3maNt-CJeEomZdBKFGEGa-jS6swY88A
 Content-Type: application/json
 
 {
-  "sellerUsername": "testuser2",
-  "amount": "40.00",
-  "productName": "Product G",
-  "productDesc": ["phone", "watch"],
-  "productCat": "electronics"
+  "sellerUsername": "testuser3",
+  "amount": "10.00",
+  "productName": "Product I",
+  "productDesc": ["plane", "ship"],
+  "productCat": "transport"
 }

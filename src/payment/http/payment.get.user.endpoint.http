@@ -1,2 +1,2 @@
-GET http://localhost:3003/payment/users?paymentType=gateway
+GET http://localhost:3003/payment/users?paymentId=e408119e-4389-4666-ba71-413ff1e2716d
 Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjIsImVtYWlsIjoidGVzdHVzZXIyQGdhdGVwYXkuZGV2IiwiaWF0IjoxNzY3MzQzMzI0LCJleHAiOjE3NjczNDY5MjQsImF1ZCI6ImxvY2FsaG9zdDozMDAzIiwiaXNzIjoibG9jYWxob3N0OjMwMDMifQ.vTH8KaLkBLlH_9cCLCwvrvM8ESVOrA3V7ziMmeMw7Ko

@@ -22,4 +22,6 @@ export default Joi.object({
   SPACES_KEY: Joi.string().required(),
   SPACES_SECRET: Joi.string().required(),
   SPACES_CDN_ENDPOINT: Joi.string().required(),
+  P2P_PROVIDER_ID: Joi.string().uuid().required(),
+  P2P_PERCENTAGE_FEES: Joi.number().min(0).max(1).default(0.02),
 });

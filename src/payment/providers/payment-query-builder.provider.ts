@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, SelectQueryBuilder } from 'typeorm';
+import { Repository, SelectQueryBuilder, Brackets } from 'typeorm';
 import { Payment } from '../payment.entity';
 import { GetUserPaymentsQueryDto } from '../dtos/get-user-payments-query.dto';
 
@@ -22,9 +22,14 @@ export class PaymentQueryBuilderProvider {
       .leftJoinAndSelect('payment.seller', 'seller')
       .leftJoinAndSelect('payment.buyer', 'buyer')
       .leftJoinAndSelect('payment.provider', 'provider')
-      .where('payment.buyerId = :userId OR payment.sellerId = :userId OR payment.merchantId = :userId', {  
-        userId: userId
-      });
+      // ✅ FIX: Wrap OR conditions in parentheses
+      .where(
+        new Brackets((qb) => {
+          qb.where('payment.buyerId = :userId', { userId })
+            .orWhere('payment.sellerId = :userId', { userId })
+            .orWhere('payment.merchantId = :userId', { userId });
+        })
+      );
   }
 
   /**
